@@ -1,8 +1,9 @@
 // 1. REGISTRATION LOGIC (New School/Admin)
-// 1. Dynamic Base URL Configuration (Single declaration at the top)
+// 1. Dynamic Base URL Configuration (Browser Safe)
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000/api'
-    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render deployed URL
+    ? 'http://localhost:3000/api'
+    : 'https://university-portal-mmuf.onrender.com/api';
+
 
 // 2. Helper to build standard security headers with the JWT token
 function getAuthHeaders() {

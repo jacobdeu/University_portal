@@ -1,9 +1,10 @@
 // Centralized API Base URL
-
-// Dynamic Base URL Configuration
+// 1. Dynamic Base URL Configuration (Browser Safe)
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000/api'
-    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
+    ? 'http://localhost:3000/api'
+    : 'https://university-portal-mmuf.onrender.com/api';
+
+
 
 const announcementForm = document.getElementById('announcementForm');
 const Title = document.getElementById('annTitle');
