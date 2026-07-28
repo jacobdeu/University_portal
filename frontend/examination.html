@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="University of Juba registrar result entry — upload student marks and grades to the database.">
+    <title>UoJ - Universal Marks Entry</title>
+    <script>
+        (function () {
+            const token = sessionStorage.getItem('token');
+            const role = sessionStorage.getItem('role');
+
+            // Allow access only if they have a token AND are a registrar/school_admin
+            if (!token || (role !== 'registrar' && role !== 'school_admin')) {
+                alert('Unauthorized Access.');
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --uoj-blue: #1a2a6c;
+            --white: #ffffff;
+            --border: #dee2e6;
+            --accent: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--uoj-blue);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--uoj-blue);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .selector-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            background: #eef2f7;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--accent);
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .marks-table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--uoj-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grade-input {
+            width: 100%;
+            max-width: 80px;
+            text-transform: uppercase;
+        }
+
+        .grade-input,
+        .gp-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .btn-save {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 25px;
+            background: var(--uoj-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-save:hover {
+            background: #0d1a4d;
+        }
+
+        .college-tag {
+            font-size: 0.8rem;
+            color: white;
+            background: var(--uoj-blue);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 8px 6px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <span class="college-tag" id="collegeLabel">Select a College</span>
+            <h1 id="deptTitle">Registrar Result Entry</h1>
+            <p id="deptMotto">Shaping the future of South Sudan</p>
+        </div>
+
+        <form id="bulkMarksForm">
+
+            <div class="selector-area">
+                <div class="form-group">
+                    <label for="collegeSelect">College / School</label>
+                    <select id="collegeSelect" required autocomplete="off">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+
+                <!-- Added Department Field -->
+                <div class="form-group">
+                    <label for="departmentSelect">Department</label>
+                    <select id="departmentSelect" required autocomplete="off">
+                        <option value="" disabled selected>Select Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="student_id">Student ID</label>
+                    <input type="text" id="student_id" placeholder="e.g. 22-CYS-011" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="semesterSelect">Semester</label>
+                    <select id="semesterSelect" required autocomplete="off">
+                        <option value="" disabled selected>Select Semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                        <option value="9">Semester 9</option>
+                        <option value="10">Semester 10</option>
+                        <option value="11">Semester 11</option>
+                        <option value="12">Semester 12</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="marks-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Course Name</th>
+                            <th scope="col">Course ID</th>
+                            <th scope="col">Grade (A–F)</th>
+                            <th scope="col">GP (0–4)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marksBody" aria-live="polite">
+                        <tr>
+                            <td colspan="4" style="text-align:center; color:#999;">
+                                Please select a college, department, and semester to load subjects...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-save">Upload Results to Database</button>
+
+        </form>
+    </div>
+
+    <script type="module" src="Js/examination.js" defer></script>
+
+</body>
+
+</html>

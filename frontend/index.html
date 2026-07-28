@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="University of Juba academic portal — view student results, announcements, and contact the registrar office.">
+    <title>University Academic Portal | UoJ</title>
+    <style>
+        :root {
+            --primary: #002d62;
+            --secondary: #f4f7f6;
+            --white: #ffffff;
+            --accent: #ffcc00;
+            --text: #333;
+            --border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background: var(--white);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 70vh;
+        }
+
+        .page { display: none; animation: fadeIn 0.4s; }
+        .active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- FORM BOXES --- */
+        .results-box,
+        .contact-card {
+            max-width: 560px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: white;
+            display: block;
+            box-sizing: border-box;
+            appearance: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,45,98,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .btn:hover { background: #00204a; }
+
+        /* --- RESULTS DISPLAY --- */
+        #resultsDisplay {
+            display: none;
+            margin-top: 20px;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Student info card */
+        .student-info-card {
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .student-info-card .s-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 0.88rem;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            margin: 10px 0;
+        }
+
+        /* GPA badge */
+        .gpa-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 5px 14px;
+            border-radius: 20px;
+            width: fit-content;
+        }
+
+        /* Mobile result cards */
+        .result-cards {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-card .subject-info { flex: 1; }
+
+        .result-card .subject-name {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+
+        .result-card .subject-meta {
+            font-size: 0.78rem;
+            color: #888;
+        }
+
+        .result-card .grade-pill {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: #eef2ff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        /* Desktop table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-top: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 400px;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+            padding: 13px 15px;
+            font-size: 0.88rem;
+        }
+
+        td {
+            padding: 11px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tfoot tr { background: #f0f4f8; }
+        tfoot td { font-weight: 700; color: var(--primary); }
+
+        /* --- FOOTER --- */
+        .uoj-footer {
+            background: #1a2a6c;
+            color: #ffffff;
+            padding: 30px 20px;
+            font-size: 0.85rem;
+            border-top: 3px solid #f39c12;
+        }
+
+        .footer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section h4 {
+            color: #f39c12;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-section p { color: #bdc3c7; line-height: 1.8; }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        /* --- MOBILE --- */
+        @media (max-width: 600px) {
+            nav { flex-direction: column; gap: 12px; text-align: center; }
+            .nav-links { gap: 10px; font-size: 0.9rem; }
+            .container { padding: 20px 12px; }
+            .results-box, .contact-card { padding: 20px 16px; }
+
+            .info-grid { grid-template-columns: 1fr; gap: 8px; }
+
+            /* Switch to cards on mobile, hide table */
+            .result-cards { display: flex; }
+            .table-responsive { display: none; }
+
+            #resultsDisplay { margin-top: 16px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo" onclick="showPage('home')" role="button" tabindex="0" aria-label="Go to home page">
+            UOJ <span style="color: var(--accent);">ACADEMIC INSIGHT</span>
+        </div>
+        <ul class="nav-links" role="list">
+            <li><a onclick="showPage('home')" role="button" tabindex="0">Home</a></li>
+            <li><a onclick="showPage('results')" role="button" tabindex="0">Results</a></li>
+            <li><a onclick="showPage('about')" role="button" tabindex="0">About</a></li>
+            <li><a onclick="showPage('contact')" role="button" tabindex="0">Contact</a></li>
+            <li><a href="login.html" style="color: var(--primary); font-weight: bold;">Login</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+
+        <!-- HOME PAGE -->
+        <div id="home" class="page active">
+            <div class="hero" style="background: linear-gradient(135deg, #1a2a6c, #243b55); color: white; padding: 60px 20px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+                <h1 style="font-size: 2.2rem; margin-bottom: 10px;">Academic Portal</h1>
+                <p style="opacity: 0.9;">University of Juba — Access your results and official updates.</p>
+                <a href="campus.html" style="display: inline-block; margin-top: 20px; color: #f39c12; text-decoration: none; font-weight: bold; border: 1px solid #f39c12; padding: 8px 20px; border-radius: 20px; transition: 0.3s;">
+                    Explore Campus Gallery →
+                </a>
+            </div>
+            <h2 style="color: #1a2a6c; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <span style="width: 10px; height: 25px; background: #f39c12; border-radius: 2px;" aria-hidden="true"></span>
+                Latest Announcements
+            </h2>
+            <div id="announcementList" aria-live="polite"></div>
+        </div>
+
+        <!-- RESULTS PAGE -->
+        <div id="results" class="page">
+            <div class="results-box">
+                <h2 style="margin-bottom: 6px; text-align: center; color: var(--primary);">Result Verification</h2>
+                <p style="text-align:center; color:#888; font-size:0.85rem; margin-bottom:18px;">Enter your details to view your grades</p>
+                <p id="error-message" style="color: red; text-align: center; font-size:0.88rem; min-height:18px;" aria-live="polite"></p>
+
+                <div class="form-group">
+                    <label for="schoolNameSelect">College / School</label>
+                    <select id="schoolNameSelect" required autocomplete="off"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="studentSemesterSelect">Semester</label>
+                    <select id="studentSemesterSelect" required autocomplete="off">
+                        <option value="" disabled selected>Select Semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                        <option value="9">Semester 9</option>
+                        <option value="10">Semester 10</option>
+                        <option value="11">Semester 11</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="studentID">Student ID</label>
+                    <input type="text" id="studentID" placeholder="e.g. 2026-IT-101" required autocomplete="off">
+                </div>
+
+                <button class="btn" onclick="fetchResults()">Show My Grades</button>
+            </div>
+
+            <!-- RESULTS OUTPUT -->
+            <div id="resultsDisplay">
+
+                <!-- Student info card -->
+                <div class="student-info-card">
+                    <span class="s-name" id="displayName"></span>
+                    <div class="info-grid">
+                       
+                        <div class="info-item">
+                            <span class="info-label">Semester</span>
+                            <span class="info-value" id="displaySemester"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">School</span>
+                            <span class="info-value" id="displaySchool"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Department</span>
+                            <span class="info-value" id="displayDepartment"></span>
+                        </div>
+                    </div>
+                    <hr class="divider">
+                    <span class="gpa-badge">GPA: <span id="gpaDisplay">—</span></span>
+                </div>
+
+                <!-- Mobile: card layout -->
+                <div class="result-cards" id="resultCards" aria-label="Your results"></div>
+
+                <!-- Desktop: table layout -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Subject Name</th>
+                                <th scope="col">Credit Hours</th>
+                                <th scope="col">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ABOUT PAGE -->
+        <div id="about" class="page">
+            <div style="background: rgba(255,255,255,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 900px; margin: 20px auto; line-height: 1.8; color: #333;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #1a2a6c; margin-bottom: 10px; font-size: 2.2rem;">University of Juba (UoJ)</h1>
+                    <p style="font-size: 1.2rem; color: #555; font-weight: 600;">Inventing the Future — Transforming Society</p>
+                </div>
+                <p>The <strong>University of Juba</strong> is South Sudan's premier comprehensive institution, established in 1975.</p>
+                <div style="background: #f8f9fa; padding: 25px; border-left: 5px solid #1a2a6c; border-radius: 8px; margin-top: 40px;">
+                    <p style="font-size: 1.15rem; font-style: italic; color: #1a2a6c;">"You don't get what you wish for. You get what you work for. Join us and explore!"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT PAGE -->
+        <div id="contact" class="page">
+            <div class="contact-card">
+                <h2 style="margin-bottom: 20px;">Contact Registrar Office</h2>
+                <form id="ticketForm">
+                    <div class="form-group">
+                        <label for="contactId">Student ID</label>
+                        <input type="text" id="contactId" placeholder="Enter Student ID" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSchoolSelect">School</label>
+                        <select id="contactSchoolSelect" required autocomplete="off">
+                            <option value="" disabled selected>Select Your School</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" rows="5" placeholder="Describe your issue..." required autocomplete="off"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Submit Ticket</button>
+                    <div id="responseMessage" style="margin-top: 15px; font-weight: bold; text-align: center;" aria-live="polite"></div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="uoj-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>University of Juba</h4>
+                <p>Established 1975. South Sudan's premier institution.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Help Desk</h4>
+                <p><a href="mailto:support@univ.edu" style="color:#bdc3c7;">support@univ.edu</a></p>
+                <p>Juba, South Sudan</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 University of Juba. All Rights Reserved.
+        </div>
+    </footer>
+
+    <script type="module" src="Js/index.js" defer></script>
+
+</body>
+
+</html>

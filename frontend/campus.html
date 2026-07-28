@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Campus gallery — explore the schools and colleges of the University of Juba, South Sudan.">
+    <title>Campus Gallery | University of Juba</title>
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #f39c12;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .back-btn {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid var(--white);
+            padding: 8px 18px;
+            border-radius: 25px;
+            float: left;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .photo-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 4px solid var(--accent);
+            
+        }
+
+        .photo-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .photo-info h3 { margin: 0; color: var(--primary); font-size: 1.25rem; }
+        .photo-info p { color: #666; font-size: 0.95rem; margin: 10px 0; line-height: 1.6; }
+
+        .school-link {
+            display: inline-block;
+            margin-top: auto;
+            padding: 12px 20px;
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .school-link:hover {
+            background-color: var(--primary);
+            color: var(--accent);
+        }
+
+        .uoj-footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 50px 20px;
+            margin-top: 60px;
+            border-top: 5px solid var(--accent);
+        }
+
+        .footer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-section h4 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: #bdc3c7;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            text-decoration: none;
+        }
+
+        .footer-section a:hover {
+            color: var(--white);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-grid {
+                padding: 20px;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header { padding: 15px; }
+            .back-btn { float: none; display: inline-block; margin-bottom: 10px; }
+            header h1 { font-size: 1.3rem; margin: 5px 0; }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+
+            .photo-card img { height: 200px; }
+
+            .school-link {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+        <h1>University of Juba Schools</h1>
+    </header>
+
+    <main>
+        <div class="gallery-grid">
+
+            <div class="photo-card">
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800"
+                    alt="Cybersecurity lab with computers and networking equipment"
+                    width="800" height="250" loading="lazy">
+                <div class="photo-info">
+                    <h3>School of Computer Science & IT</h3>
+                    <p>Home of Cybersecurity and Software Engineering. Shaping the digital future of South Sudan.</p>
+                    <a href="schools/computer-science.html" class="school-link">View Department Details →</a>
+                </div>
+            </div>
+
+            <div class="photo-card">
+                <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800"
+                    alt="Medical sciences laboratory with equipment"
+                    width="800" height="250" loading="lazy">
+                <div class="photo-info">
+                    <h3>College of Medicine</h3>
+                    <p>Advancing healthcare through rigorous medical training and community-focused research.</p>
+                    <a href="schools/medicine.html" class="school-link">View Department Details →</a>
+                </div>
+            </div>
+
+            <div class="photo-card">
+                <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=800"
+                    alt="Engineering lab with mechanical and electrical equipment"
+                    width="800" height="250" loading="lazy">
+                <div class="photo-info">
+                    <h3>School of Engineering</h3>
+                    <p>Building the nation's infrastructure through Civil, Electrical, and Mechanical expertise.</p>
+                    <a href="schools/engineering.html" class="school-link">View Department Details →</a>
+                </div>
+            </div>
+
+            <div class="photo-card">
+                <img src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=800"
+                    alt="University of Juba campus administration block"
+                    width="800" height="250" loading="lazy">
+                <div class="photo-info">
+                    <h3>Administration Block</h3>
+                    <p>The administrative hub and historical landmark of the University of Juba campus.</p>
+                    <a href="schools/admin.html" class="school-link">View Department Details →</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="uoj-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>University of Juba</h4>
+                <p>Education for the Future. South Sudan's premier center for academic excellence since 1975.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Navigation</h4>
+                <p><a href="index.html">Main Portal</a></p>
+                <p><a href="index.html#results">Student Results</a></p>
+                <p><a href="index.html#announcements">Announcements</a></p>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <p>Admin Block, Level 2</p>
+                <p>Email: <a href="mailto:support@univ.edu">support@univ.edu</a></p>
+                <p>Location: Juba, South Sudan</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 University of Juba. Excellence &amp; Relevance. All Rights Reserved.
+        </div>
+    </footer>
+
+</body>
+
+</html>

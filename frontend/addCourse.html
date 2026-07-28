@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="University of Juba course registration portal — add new subjects to the master list.">
+    <title>UoJ - Course Registry</title>
+    <script>
+        (function () {
+            const token = sessionStorage.getItem('token');
+            const role = sessionStorage.getItem('role');
+
+            // Allow access only if they have a token AND are a registrar/school_admin
+            if (!token || (role !== 'registrar' && role !== 'school_admin')) {
+                alert('Unauthorized Access.');
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --uoj-blue: #1a2a6c;
+            --white: #ffffff;
+            --border: #dee2e6;
+            --accent: #2c3e50;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --disabled-bg: #e9ecef;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--uoj-blue);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--uoj-blue);
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        #school_code {
+            cursor: not-allowed;
+            color: #555;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 15px;
+            background: var(--uoj-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-register:hover {
+            background: #0d1a4d;
+        }
+
+        .btn-register:disabled {
+            background: #ccc;
+            cursor: wait;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>New Course Registration</h1>
+            <p style="color: #666; font-size: 0.85rem;">Add subjects to the University Master List</p>
+        </div>
+
+        <form id="courseEntryForm">
+
+            <div class="form-group">
+                <label for="school_code">Full School Code</label>
+                <select id="school_code" required autocomplete="off">
+                    <option value="">Loading code...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="school_name">Full College / School Name</label>
+                <input type="text" id="school_name" readonly autocomplete="organization"
+                    style="background-color: var(--disabled-bg); color: #555;" placeholder="System will auto-fill...">
+            </div>
+
+            <!-- Added Department Select Field -->
+            <div class="form-group">
+                <label for="departmentSelect">Department</label>
+                <select id="departmentSelect" required autocomplete="off">
+                    <option value="" disabled selected>Select Department</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="course_id">Course ID / Code</label>
+                <input type="text" id="course_id" placeholder="e.g. CSC305" required autocomplete="off"
+                    style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label for="course_name">Full Course Name</label>
+                <input type="text" id="course_name" placeholder="e.g. Advanced Database Systems" required
+                    autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="semester">Academic Semester</label>
+                <select id="semester" required autocomplete="off">
+                    <option value="" disabled selected>Choose Semester</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                    <option value="9">Semester 9</option>
+                    <option value="10">Semester 10</option>
+                    <option value="11">Semester 11</option>
+                    <option value="12">Semester 12</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="credit_hours">Credit Hours</label>
+                <input type="number" id="credit_hours" min="1" max="6" required autocomplete="off">
+            </div>
+
+            <button type="submit" class="btn-register" id="submitBtn">Save Course to Registry</button>
+            <div id="status" class="status-msg"></div>
+
+        </form>
+    </div>
+
+    <script type="module" src="Js/addCourse.js" defer></script>
+
+</body>
+
+</html>
