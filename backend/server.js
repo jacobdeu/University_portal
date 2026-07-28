@@ -9,7 +9,10 @@
  * synchronization for real-time student inquiries.
  * Architecture: Refactored to Modular MVC Structure
  * ============================================================
- */import 'dotenv/config'; // Modern way to load .env immediately at the top
+ *
+ * 
+ **/
+import 'dotenv/config'; // Modern way to load .env immediately at the top
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -35,7 +38,29 @@ const isProduction = process.env.NODE_ENV === 'production'; // Checks deployment
 
 // 2. Global Middleware Configuration
 app.use(compression());                 // Compresses code packages over the network
-app.use(cors());                        // Allows cross-origin requests for local phone/device testing
+
+// --- CORS CONFIGURATION (Fixes GitHub Pages -> Render CORS error) ---
+const allowedOrigins = [
+    'https://jacobdeu.github.io',       // Your GitHub Pages live frontend
+    `http://localhost:${PORT}`,         // Local testing
+    `http://127.0.0.1:${PORT}`,
+    `http://${networkIP}:${PORT}`       // Local network/phone testing
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, Curl, Postman) or matched domains
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS Blocked: ${origin} is not allowed by CORS policy.`));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -54,6 +79,6 @@ app.listen(PORT, HOST, () => {
     console.log(`============================================================`);
     console.log(`🏠 Local Machine:   http://localhost:${PORT}`);
     console.log(`🌐 Network/Phone:   http://${networkIP}:${PORT}`);
-   // console.log(`⚙️  Environment:     ${isProduction ? 'PRODUCTION 🚀' : 'DEVELOPMENT 🛠️'}`);
+    console.log(`⚙️  Environment:     ${isProduction ? 'PRODUCTION 🚀' : 'DEVELOPMENT 🛠️'}`);
     console.log(`============================================================\n`);
 });
