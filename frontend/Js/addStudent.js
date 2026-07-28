@@ -1,6 +1,7 @@
-// Centralized Production API Base URL
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
+// 1. Dynamic Base URL Configuration (Browser Safe)
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
 
 document.addEventListener('DOMContentLoaded', async () => {
     const savedName = sessionStorage.getItem('schoolName');
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const semesterSelect = document.getElementById('semesterSelect');
     const departmentSelect = document.getElementById('departmentSelect');
 
-    // 1. Initialize Form UI Layout Components
+    // Initialize Form UI Layout Components
     if (collegeSelect && studentInput) {
         collegeSelect.innerHTML = '';
         const newOption = document.createElement('option');
@@ -42,10 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 2. Fetch and Populate Departments for this School
+    // Fetch and Populate Departments for this School
     await fetchDepartments(savedCode, token);
 
-    // 3. Dropdown Event Listener Setup
+    // Dropdown Event Listener Setup
     const handleSelectionChange = () => {
         const selectedDepartment = departmentSelect ? departmentSelect.value : '';
         const selectedSemester = semesterSelect ? semesterSelect.value : '';
@@ -82,7 +83,8 @@ async function fetchDepartments(schoolCode, token) {
     try {
         departmentSelect.innerHTML = '<option value="" disabled selected>Loading departments...</option>';
 
-        const response = await fetch(`${API_BASE_URL}/api/admin/getDepartments?school_code=${encodeURIComponent(schoolCode)}`, {
+        // Fixed route: removed duplicate /api prefix
+        const response = await fetch(`${API_BASE_URL}/admin/getDepartments?school_code=${encodeURIComponent(schoolCode)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -95,8 +97,6 @@ async function fetchDepartments(schoolCode, token) {
         }
 
         const data = await response.json();
-
-        // Extract array from response payload object
         const departmentsList = data.departments || [];
 
         departmentSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
@@ -111,7 +111,6 @@ async function fetchDepartments(schoolCode, token) {
             option.value = dept.department_name;
             option.textContent = dept.department_name;
 
-            // Store index_format on option attribute (e.g., YY-CIT-NNN)
             if (dept.index_format) {
                 option.setAttribute('data-index-format', dept.index_format);
             }
@@ -129,6 +128,7 @@ async function fetchDepartments(schoolCode, token) {
 async function loadSchoolCourses(schoolName, department, semester) {
     const marksBody = document.getElementById('marksBody');
     const token = sessionStorage.getItem('token');
+    if (!marksBody) return;
 
     const params = new URLSearchParams({
         schoolName: schoolName,
@@ -139,7 +139,8 @@ async function loadSchoolCourses(schoolName, department, semester) {
     try {
         marksBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading subjects...</td></tr>';
 
-        const response = await fetch(`${API_BASE_URL}/api/admin/loadCourses?${params.toString()}`, {
+        // Fixed route: removed duplicate /api prefix
+        const response = await fetch(`${API_BASE_URL}/admin/loadCourses?${params.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -186,14 +187,14 @@ document.getElementById('bulkMarksForm')?.addEventListener('submit', async funct
     e.preventDefault();
 
     const schoolCode = sessionStorage.getItem('schoolCode');
-    const studentId = document.getElementById('student_id').value.trim();
-    const semester = document.getElementById('semesterSelect').value;
-
-    // 1. Grab the department value from the dropdown select
+    const studentIdInput = document.getElementById('student_id');
+    const semesterSelect = document.getElementById('semesterSelect');
     const departmentSelect = document.getElementById('departmentSelect');
+
+    const studentId = studentIdInput ? studentIdInput.value.trim() : "";
+    const semester = semesterSelect ? semesterSelect.value : "";
     const department = departmentSelect ? departmentSelect.value : "";
 
-    // 2. Validate required fields
     if (!schoolCode || !studentId || !semester || !department) {
         alert("Please ensure School, Student ID, Department, and Semester are all selected.");
         return;
@@ -224,7 +225,6 @@ document.getElementById('bulkMarksForm')?.addEventListener('submit', async funct
 
         row.style.backgroundColor = "";
 
-        // 3. Attach department to payload
         marksData.push({
             school_code: schoolCode,
             student_id: studentId,
@@ -243,15 +243,17 @@ document.getElementById('bulkMarksForm')?.addEventListener('submit', async funct
 
 async function sendToServer(marksData) {
     const submitBtn = document.getElementById('submitBtn');
-    const originalBtnText = submitBtn.innerText;
+    if (!submitBtn) return;
 
+    const originalBtnText = submitBtn.innerText;
     submitBtn.disabled = true;
     submitBtn.innerText = "Uploading...";
 
     try {
         const token = sessionStorage.getItem('token');
 
-        const response = await fetch(`${API_BASE_URL}/api/admin/upload`, {
+        // Fixed route: removed duplicate /api prefix
+        const response = await fetch(`${API_BASE_URL}/admin/upload`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -280,3 +282,4 @@ async function sendToServer(marksData) {
         }, 3000);
     }
 }
+

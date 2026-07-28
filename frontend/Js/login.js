@@ -1,14 +1,16 @@
 
-
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
-
+// Dynamic API Base URL (works both locally and on live hosting)
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
 
 // Function to load schools into the dropdown
 async function populateSchools() {
     const select = document.getElementById('userSchool');
+    if (!select) return;
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/reload-schools`);
+        const response = await fetch(`${API_BASE_URL}/admin/reload-schools`);
         const result = await response.json();
         
         if (result.success) {
@@ -29,7 +31,7 @@ async function populateSchools() {
 // Run this on load
 populateSchools();
 
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const schoolSelect = document.getElementById('userSchool');
@@ -38,16 +40,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const schoolCode = schoolSelect.value; 
     const accessKey = document.getElementById('accessCode').value.trim();
 
-    errorMsg.style.display = 'none';
+    if (errorMsg) errorMsg.style.display = 'none';
 
     if (!schoolCode || accessKey === "") {
-        errorMsg.textContent = "All fields are required.";
-        errorMsg.style.display = 'block';
+        if (errorMsg) {
+            errorMsg.textContent = "All fields are required.";
+            errorMsg.style.display = 'block';
+        }
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ schoolCode, accessKey })
@@ -67,11 +71,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             
         } else {
             // 401 Unauthenticated or 400 Bad Request
-            errorMsg.textContent = data.message || "Invalid credentials.";
-            errorMsg.style.display = 'block';
+            if (errorMsg) {
+                errorMsg.textContent = data.message || "Invalid credentials.";
+                errorMsg.style.display = 'block';
+            }
         }
     } catch (err) {
-        errorMsg.textContent = "Unable to connect to the server.";
-        errorMsg.style.display = 'block';
+        if (errorMsg) {
+            errorMsg.textContent = "Unable to connect to the server.";
+            errorMsg.style.display = 'block';
+        }
     }
 });

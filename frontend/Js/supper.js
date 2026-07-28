@@ -1,7 +1,10 @@
 // 1. REGISTRATION LOGIC (New School/Admin)
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
+// 1. Dynamic Base URL Configuration (Single declaration at the top)
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render deployed URL
 
+// 2. Helper to build standard security headers with the JWT token
 function getAuthHeaders() {
     const token = sessionStorage.getItem('token'); 
     return {
@@ -10,13 +13,8 @@ function getAuthHeaders() {
     };
 }
 
-// Dynamic Base URL Configuration
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000/api'
-    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render deployed URL
-
-// 1. CREATE ACCOUNT FORM SUBMISSION
-document.getElementById('masterPassForm').addEventListener('submit', async (e) => {
+// 3. CREATE ACCOUNT FORM SUBMISSION
+document.getElementById('masterPassForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const payload = {
@@ -46,9 +44,11 @@ document.getElementById('masterPassForm').addEventListener('submit', async (e) =
     }
 });
 
-// 2. TABLE LOADING (READ)
+// 4. TABLE LOADING (READ)
 async function loadTable() {
     const tableBody = document.getElementById('accessTableBody');
+    if (!tableBody) return;
+
     try {
         const response = await fetch(`${API_BASE_URL}/admin/reload-schools`, {
             method: 'GET',
@@ -94,20 +94,24 @@ let currentOldCode = "";
 window.openEditModal = (code, name, role) => {
     currentOldCode = code;
 
-    document.getElementById('editModal').style.display = 'flex';
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'flex';
+    
     document.getElementById('editCode').value = code;
     document.getElementById('editName').value = name;
     document.getElementById('editRole').value = role; 
     document.getElementById('editPass').value = ""; 
 
-    document.getElementById('saveUpdateBtn').onclick = submitEdit;
+    const saveBtn = document.getElementById('saveUpdateBtn');
+    if (saveBtn) saveBtn.onclick = submitEdit;
 };
 
 window.closeModal = () => {
-    document.getElementById('editModal').style.display = 'none';
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'none';
 };
 
-// 3. SUBMIT UPDATE (UPDATE)
+// 5. SUBMIT UPDATE (UPDATE)
 async function submitEdit() {
     const payload = {
         newCode: document.getElementById('editCode').value.trim(),
@@ -137,7 +141,7 @@ async function submitEdit() {
     }
 }
 
-// 4. DELETE LOGIC (DELETE)
+// 6. DELETE LOGIC (DELETE)
 window.deleteSchool = async (id) => {
     if (!confirm(`Are you sure you want to revoke access for [${id}]?`)) return;
     try {
@@ -159,9 +163,11 @@ window.deleteSchool = async (id) => {
     }
 };
 
-// UI Helper
+// 7. UI Helper
 function showStatus(message, type) {
     const statusMsg = document.getElementById('statusMessage');
+    if (!statusMsg) return;
+    
     statusMsg.className = `toast-message toast-${type}`;
     statusMsg.innerHTML = message;
     statusMsg.style.display = 'block';

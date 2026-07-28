@@ -1,7 +1,9 @@
 // Centralized API Base URL
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
 
+// Dynamic Base URL Configuration
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
 
 const announcementForm = document.getElementById('announcementForm');
 const Title = document.getElementById('annTitle');
@@ -25,6 +27,7 @@ function getAuthHeaders() {
 
 async function renderMessages() {
     const container = document.getElementById('adminTicketList');
+    if (!container) return;
 
     // Helper function to handle session eviction and clean redirection UI
     const handleSessionEviction = () => {
@@ -48,7 +51,7 @@ async function renderMessages() {
     const params = new URLSearchParams({ school_code: savedCode });
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/messages?${params.toString()}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/messages?${params.toString()}`, {
             method: 'GET',
             headers: getAuthHeaders() 
         });
@@ -115,7 +118,7 @@ async function deleteMessage(id) {
     if (!confirm("Are you sure you want to remove this student issue?")) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/messages/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/messages/${id}`, {
             method: 'DELETE',
             headers: getAuthHeaders()
         });
@@ -140,8 +143,8 @@ if (announcementForm) {
         event.preventDefault();
 
         const payload = {
-            Tilte: Title.value, // Retained your spelling key layout 'Tilte' to match your controller expectations
-            Body: Body.value
+            Tilte: Title ? Title.value : '', 
+            Body: Body ? Body.value : ''
         };
 
         await postAnnouncement(payload);
@@ -150,7 +153,7 @@ if (announcementForm) {
 
 async function postAnnouncement(payload) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/makePost`, {
+        const response = await fetch(`${API_BASE_URL}/admin/makePost`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(payload)
@@ -159,18 +162,24 @@ async function postAnnouncement(payload) {
         const result = await response.json();
 
         if (response.ok) {
-            annStatus.style.color = "green";
-            annStatus.innerHTML = "Success: " + (result.message || "Post submitted!");
-            announcementForm.reset();
+            if (annStatus) {
+                annStatus.style.color = "green";
+                annStatus.innerHTML = "Success: " + (result.message || "Post submitted!");
+            }
+            if (announcementForm) announcementForm.reset();
 
-            setTimeout(() => { annStatus.innerHTML = ""; }, 3000);
+            setTimeout(() => { if (annStatus) annStatus.innerHTML = ""; }, 3000);
         } else {
-            annStatus.style.color = "red";
-            annStatus.innerHTML = `Error: ${result.message || result.error || 'Server rejected request'}`;
+            if (annStatus) {
+                annStatus.style.color = "red";
+                annStatus.innerHTML = `Error: ${result.message || result.error || 'Server rejected request'}`;
+            }
         }
     } catch (error) {
         console.error("Network error:", error);
-        annStatus.style.color = "red";
-        annStatus.innerHTML = "Could not connect to server.";
+        if (annStatus) {
+            annStatus.style.color = "red";
+            annStatus.innerHTML = "Could not connect to server.";
+        }
     }
 }

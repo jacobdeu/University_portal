@@ -1,17 +1,19 @@
-// Centralized Production API Base URL
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
+// 1. Dynamic Base URL Configuration (Browser Safe)
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
 
+// Retrieve persistent admin session data
 const savedCode = sessionStorage.getItem('schoolCode');
 
-// Pre-fill and DISABLE school code input (admin can't change it)
+// Pre-fill and lock school code input field
 const schoolCodeInput = document.getElementById('school_code');
 if (schoolCodeInput && savedCode) {
     schoolCodeInput.value = savedCode;
     schoolCodeInput.disabled = true;
 }
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// ─── Validation Helper ────────────────────────────────────────────────────────
 function validateForm() {
     let isValid = true;
 
@@ -24,18 +26,20 @@ function validateForm() {
     const indexHint = document.getElementById('index_format_hint');
     const deptHint = document.getElementById('department_name_hint');
 
-    // Reset hints
+    // Reset error hint messages
     if (indexHint) indexHint.textContent = '';
     if (deptHint) deptHint.textContent = '';
 
+    // Validate index format structure (e.g., YY-CYS-NNN or YY-MED-NNN)
     if (!index_format) {
         if (indexHint) indexHint.textContent = '⚠️ Index format is required.';
         isValid = false;
     } else if (!/^YY-[A-Z]{2,10}-NNN$/.test(index_format)) {
-        if (indexHint) indexHint.textContent = '⚠️ Format must be like: YY-CYS-NNN or YY-MED-NNN';
+        if (indexHint) indexHint.textContent = '⚠️ Format must follow: YY-CYS-NNN or YY-MED-NNN';
         isValid = false;
     }
 
+    // Validate department length
     if (!department_name) {
         if (deptHint) deptHint.textContent = '⚠️ Department name is required.';
         isValid = false;
@@ -47,9 +51,9 @@ function validateForm() {
     return isValid;
 }
 
-// ─── Toast Notification ───────────────────────────────────────────────────────
+// ─── Toast Feedback Notification ──────────────────────────────────────────────
 function showToast(message, type = 'success') {
-    // Remove any existing toast first
+    // Purge existing visible toasts
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
 
@@ -57,10 +61,15 @@ function showToast(message, type = 'success') {
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 3000);
 }
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
+// ─── Department Form Submit Dispatch ──────────────────────────────────────────
 document.getElementById('departmentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -72,20 +81,22 @@ document.getElementById('departmentForm')?.addEventListener('submit', async (e) 
     if (!validateForm()) return;
 
     const payload = {
-        school_code:     savedCode,
-        index_format:    document.getElementById('index_format').value.trim(),
-        department_name: document.getElementById('department_name').value.trim(),
+        school_code: savedCode,
+        index_format: document.getElementById('index_format')?.value.trim(),
+        department_name: document.getElementById('department_name')?.value.trim(),
     };
 
     try {
-        // Grab the active session token from sessionStorage
         const token = sessionStorage.getItem('token');
 
-        const response = await fetch(`${API_BASE_URL}/api/admin/departments`, {
+        // Path cleanly maps to: ${API_BASE_URL}/admin/departments
+        // Local: http://localhost:5000/api/admin/departments
+        // Production: https://university-portal-backend.onrender.com/api/admin/departments
+        const response = await fetch(`${API_BASE_URL}/admin/departments`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Added Security Header
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(payload),
         });
@@ -98,17 +109,19 @@ document.getElementById('departmentForm')?.addEventListener('submit', async (e) 
             const deptForm = document.getElementById('departmentForm');
             if (deptForm) deptForm.reset();
 
+            // Re-apply locked state to disabled school input post-reset
             if (schoolCodeInput) {
-                schoolCodeInput.value    = savedCode;
+                schoolCodeInput.value = savedCode;
                 schoolCodeInput.disabled = true;
             }
         } else {
-            // Displays specific backend middleware or controller rejection strings
             showToast(data.message || data.error || 'Something went wrong.', 'error');
         }
 
     } catch (error) {
         console.error('Submit error:', error);
-        showToast('Connection Error: Please check your server.', 'error');
+        showToast('Connection Error: Unable to reach the server.', 'error');
     }
 });
+
+

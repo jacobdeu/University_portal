@@ -9,40 +9,45 @@
  * synchronization for real-time student inquiries.
  * ============================================================
  */
+// 1. Dynamic Base URL Configuration
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Live Render Backend URL
 
-//insight.uoj.edu.ss
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
-
-
+// 2. Navigation Control
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    const targetPage = document.getElementById(pageId);
+    
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+
     // If switching back to results, hide the table until searched again
-    if (pageId === 'results') document.getElementById('resultsDisplay').classList.remove('active');
+    if (pageId === 'results') {
+        const resultsDisplay = document.getElementById('resultsDisplay');
+        if (resultsDisplay) resultsDisplay.classList.remove('active');
+    }
     window.scrollTo(0, 0);
 }
 window.showPage = showPage;
 
+// 3. Load Schools in Main Results Dropdown
 async function loadSchools() {
     const schoolSelect = document.getElementById('schoolNameSelect');
+    if (!schoolSelect) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/reload-schools`);
+        const response = await fetch(`${API_BASE_URL}/admin/reload-schools`);
         const result = await response.json();
 
         if (result.success) {
-            // Clear current options
             schoolSelect.innerHTML = '<option value="" disabled selected>Select School</option>';
 
-            // Fill with database data
             result.data.forEach(school => {
                 const option = document.createElement('option');
-
-                // Use school_name for both the hidden value and the visible text
                 option.value = school.school_name;
                 option.textContent = school.school_name;
-
                 schoolSelect.appendChild(option);
             });
         } else {
@@ -52,31 +57,33 @@ async function loadSchools() {
         console.error("Network error:", err);
     }
 }
-
 window.onload = loadSchools;
 
+// 4. Results Search Trigger
 async function fetchResults() {
     const schoolSelect = document.getElementById('schoolNameSelect');
     const semesterSelect = document.getElementById('studentSemesterSelect');
     const studentIDField = document.getElementById('studentID');
 
+    if (!schoolSelect || !semesterSelect || !studentIDField) return;
+
     const school = schoolSelect.value;
     const semester = semesterSelect.value;
     const student_id = studentIDField.value.trim();
 
-    // Call your data fetching function
     await fetchStudentData(student_id, school, semester);
 
-    // Clear the fields after the fetch is successful
+    // Clear the fields after fetch attempt
     schoolSelect.value = '';
     semesterSelect.value = '';
     studentIDField.value = '';
 }
+window.fetchResults = fetchResults;
 
 let errorTimer;
 
-// Helper function to manage timed messages cleanly
 function showTimedError(element, message) {
+    if (!element) return;
     element.innerText = message;
     element.style.color = "#dc3545";
     errorTimer = setTimeout(() => {
@@ -84,11 +91,11 @@ function showTimedError(element, message) {
     }, 4000);
 }
 
+// 5. Fetch Student Data & GPA
 async function fetchStudentData(student_id, school, semester) {
     const resultsDisplay = document.getElementById('resultsDisplay');
     const errorEl = document.getElementById('error-message');
 
-    // 1. Reset UI State
     if (errorTimer) clearTimeout(errorTimer);
     if (resultsDisplay) resultsDisplay.style.display = 'none';
     if (errorEl) errorEl.innerText = "";
@@ -102,20 +109,16 @@ async function fetchStudentData(student_id, school, semester) {
 
     try {
         const [response, gpaResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/student/result?${params.toString()}`),
-            fetch(`${API_BASE_URL}/api/student/gpa?${params.toString()}`)
+            fetch(`${API_BASE_URL}/student/result?${params.toString()}`),
+            fetch(`${API_BASE_URL}/student/gpa?${params.toString()}`)
         ]);
 
-        // 2. Parse JSON payloads safely
         const resultsData = await response.json().catch(() => null);
         const gpaData = await gpaResponse.json().catch(() => null);
 
-        // 3. Handle Errors (Non-200 responses)
         if (!response.ok || !gpaResponse.ok) {
-            // Priority 1: Extract backend custom message directly
             let message = resultsData?.message || gpaData?.message;
 
-            // Priority 2: Precise status fallbacks if payload parsing failed
             if (!message) {
                 if (response.status === 400 || gpaResponse.status === 400) {
                     message = "Input verification failed. Check your ID format.";
@@ -132,13 +135,11 @@ async function fetchStudentData(student_id, school, semester) {
             return;
         }
 
-        // 4. Data Safety Interceptor
         if (!resultsData || resultsData.length === 0) {
             showTimedError(errorEl, "No records found for this semester.");
             return;
         }
 
-        // 5. Success Flow
         errorEl.innerText = "";
         renderTable(resultsData, student_id, gpaData);
 
@@ -148,14 +149,11 @@ async function fetchStudentData(student_id, school, semester) {
     }
 }
 
-// Make sure this matches your HTML button's onclick name!
-window.fetchResults = fetchResults;
-
+// 6. Render Table & Mobile Layout
 function renderTable(results, idNumber, gpa) {
-    // 1. Target the elements specifically
     const resultsSection = document.getElementById('resultsDisplay');
-    const tableBody = document.getElementById('resultsTableBody'); // Target by explicit ID
-    const mobileCardsContainer = document.getElementById('resultCards'); // Mobile container
+    const tableBody = document.getElementById('resultsTableBody');
+    const mobileCardsContainer = document.getElementById('resultCards');
     
     const nameHeader = document.getElementById('displayName');
     const gpaBox = document.getElementById('gpaDisplay');
@@ -164,15 +162,10 @@ function renderTable(results, idNumber, gpa) {
     const schoolBox = document.getElementById('displaySchool');
     const departmentBox = document.getElementById('displayDepartment');
 
-    console.log(results);
-
-    // 2. Clear existing items to avoid layout duplication
     if (tableBody) tableBody.innerHTML = "";
     if (mobileCardsContainer) mobileCardsContainer.innerHTML = "";
 
-    // 3. Loop through your courses and build BOTH layouts
     results.forEach((course, index) => {
-        // --- Desktop Row String Layout ---
         const desktopRow = `
             <tr>
                 <td>${index + 1}</td>
@@ -183,7 +176,6 @@ function renderTable(results, idNumber, gpa) {
         `;
         if (tableBody) tableBody.insertAdjacentHTML('beforeend', desktopRow);
 
-        // --- Mobile Card String Layout (Matches your CSS definitions) ---
         const mobileCard = `
             <div class="result-card">
                 <div class="subject-info">
@@ -196,27 +188,29 @@ function renderTable(results, idNumber, gpa) {
         if (mobileCardsContainer) mobileCardsContainer.insertAdjacentHTML('beforeend', mobileCard);
     });
 
-    // 4. Fill in the Metadata headers cleanly
     const firstRow = results[0];
     const studentName = firstRow?.student_name || "Student";
     
-    nameHeader.innerText = `${studentName} (${idNumber})`;
-    gpaBox.innerText = gpa?.gpa || "0.00";
+    if (nameHeader) nameHeader.innerText = `${studentName} (${idNumber})`;
+    if (gpaBox) gpaBox.innerText = gpa?.gpa || "0.00";
 
     if (semesterBox) semesterBox.innerText = firstRow?.semester || "N/A";
     if (schoolBox) schoolBox.innerText = firstRow?.school_name || "N/A";
     if (departmentBox) departmentBox.innerText = firstRow?.department_name || "N/A";
 
-    // 5. Override initial visibility rules
-    resultsSection.style.display = "block";
-    resultsSection.classList.add('active');
+    if (resultsSection) {
+        resultsSection.style.display = "block";
+        resultsSection.classList.add('active');
+    }
 }
 
+// 7. Load Announcements
 async function loadAnnouncements() {
     const container = document.getElementById('announcementList');
+    if (!container) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/student/news`);
+        const response = await fetch(`${API_BASE_URL}/student/news`);
         const data = await response.json();
 
         const newsArray = data.message;
@@ -251,22 +245,19 @@ async function loadAnnouncements() {
         container.innerHTML = `<p style="color:#d63031; text-align:center;">Unable to load news updates.</p>`;
     }
 }
-
 loadAnnouncements();
 
+// 8. Contact Form School Loader
 document.addEventListener('DOMContentLoaded', () => {
     populateSchools();
 });
 
-// Student contact form school loader
 async function populateSchools() {
     const schoolSelect = document.getElementById('contactSchoolSelect');
-
-    // Safety check: if the select doesn't exist on this specific page, stop.
     if (!schoolSelect) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/reload-schools`);
+        const response = await fetch(`${API_BASE_URL}/admin/reload-schools`);
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {
@@ -284,6 +275,7 @@ async function populateSchools() {
     }
 }
 
+// 9. Contact Ticket Submission
 let ticketTimer;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -306,11 +298,11 @@ document.getElementById('ticketForm')?.addEventListener('submit', async function
 
     submitBtn.disabled = true;
     submitBtn.innerText = "Submitting...";
-    responseEl.innerText = "";
+    if (responseEl) responseEl.innerText = "";
 
     try {
         const [response] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/student/submit-ticket`, {
+            fetch(`${API_BASE_URL}/student/submit-ticket`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ticketData)
@@ -321,22 +313,28 @@ document.getElementById('ticketForm')?.addEventListener('submit', async function
         const result = await response.json();
 
         if (response.ok) {
-            responseEl.innerText = "Ticket submitted successfully!";
-            responseEl.style.color = "#28a745";
+            if (responseEl) {
+                responseEl.innerText = "Ticket submitted successfully!";
+                responseEl.style.color = "#28a745";
+            }
             this.reset();
         } else {
-            responseEl.innerText = result.error || "Submission failed.";
-            responseEl.style.color = "#dc3545";
+            if (responseEl) {
+                responseEl.innerText = result.error || "Submission failed.";
+                responseEl.style.color = "#dc3545";
+            }
         }
     } catch (err) {
-        responseEl.innerText = "Server connection failed.";
-        responseEl.style.color = "#dc3545";
+        if (responseEl) {
+            responseEl.innerText = "Server connection failed.";
+            responseEl.style.color = "#dc3545";
+        }
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = "Submit Ticket";
 
         ticketTimer = setTimeout(() => {
-            responseEl.innerText = "";
+            if (responseEl) responseEl.innerText = "";
         }, 4000);
     }
 });

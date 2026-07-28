@@ -1,6 +1,7 @@
-// Centralized Production API Base URL
-require('dotenv').config();
-const API_BASE_URL = process.env.API_BASE_URL;
+// 1. Dynamic Base URL Configuration (Browser Safe)
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render URL
 
 document.addEventListener('DOMContentLoaded', async () => {
     const schoolSelect = document.getElementById('school_name');
@@ -16,13 +17,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (codeSelect) {
             codeSelect.innerHTML = `<option value="${savedCode}">${savedCode}</option>`;
             codeSelect.style.pointerEvents = "none";
-            codeSelect.style.backgroundColor = "var(--disabled-bg)";
+            codeSelect.style.backgroundColor = "var(--disabled-bg, #eef2f7)";
         }
 
         if (schoolSelect) {
             schoolSelect.value = savedName;
             schoolSelect.style.pointerEvents = "none";
-            schoolSelect.style.backgroundColor = "var(--disabled-bg)";
+            schoolSelect.style.backgroundColor = "var(--disabled-bg, #eef2f7)";
         }
     } else {
         console.warn("Session data missing. Check login storage keys.");
@@ -38,7 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             departmentSelect.innerHTML = '<option value="" disabled selected>Loading departments...</option>';
 
-            const response = await fetch(`${API_BASE_URL}/api/admin/getDepartments?school_code=${encodeURIComponent(savedCode)}`, {
+            // Endpoint fixed: Removed extra /api prefix
+            const response = await fetch(`${API_BASE_URL}/admin/getDepartments?school_code=${encodeURIComponent(savedCode)}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
@@ -93,7 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const token = sessionStorage.getItem('token');
 
-                const response = await fetch(`${API_BASE_URL}/api/admin/add-course`, {
+                // Endpoint fixed: Removed extra /api prefix
+                const response = await fetch(`${API_BASE_URL}/admin/add-course`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -111,13 +114,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                         status.style.display = "block";
                     }
 
-                    // Reset form fields
+                    // Reset editable form fields
                     this.reset();
 
-                    // Re-inject session defaults after form reset
+                    // Re-apply locked admin defaults post-reset
                     if (savedName && savedCode) {
-                        if (codeSelect) codeSelect.innerHTML = `<option value="${savedCode}">${savedCode}</option>`;
-                        if (schoolSelect) schoolSelect.value = savedName;
+                        if (codeSelect) {
+                            codeSelect.innerHTML = `<option value="${savedCode}">${savedCode}</option>`;
+                            codeSelect.style.pointerEvents = "none";
+                            codeSelect.style.backgroundColor = "var(--disabled-bg, #eef2f7)";
+                        }
+                        if (schoolSelect) {
+                            schoolSelect.value = savedName;
+                            schoolSelect.style.pointerEvents = "none";
+                            schoolSelect.style.backgroundColor = "var(--disabled-bg, #eef2f7)";
+                        }
                     }
 
                     setTimeout(() => {
@@ -153,4 +164,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
-
