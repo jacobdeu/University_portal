@@ -1,13 +1,19 @@
 // 1. REGISTRATION LOGIC (New School/Admin)
-// Helper function to dynamically grab the token and set up authorization headers
+require('dotenv').config();
+const API_BASE_URL = process.env.API_BASE_URL;
+
 function getAuthHeaders() {
-    // If you decided to switch to localStorage later, just change 'sessionStorage' to 'localStorage' here
     const token = sessionStorage.getItem('token'); 
     return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
     };
 }
+
+// Dynamic Base URL Configuration
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://university-portal-backend.onrender.com/api'; // Replace with your Render deployed URL
 
 // 1. CREATE ACCOUNT FORM SUBMISSION
 document.getElementById('masterPassForm').addEventListener('submit', async (e) => {
@@ -21,9 +27,9 @@ document.getElementById('masterPassForm').addEventListener('submit', async (e) =
     };
 
     try {
-        const response = await fetch('http://192.168.1.148:3000/api/admin/register-school', {
+        const response = await fetch(`${API_BASE_URL}/admin/register-school`, {
             method: 'POST',
-            headers: getAuthHeaders(), // Added Security Headers
+            headers: getAuthHeaders(),
             body: JSON.stringify(payload)
         });
 
@@ -44,9 +50,9 @@ document.getElementById('masterPassForm').addEventListener('submit', async (e) =
 async function loadTable() {
     const tableBody = document.getElementById('accessTableBody');
     try {
-        const response = await fetch('http://192.168.1.148:3000/api/admin/reload-schools', {
+        const response = await fetch(`${API_BASE_URL}/admin/reload-schools`, {
             method: 'GET',
-            headers: getAuthHeaders() // Added Security Headers
+            headers: getAuthHeaders()
         });
         const result = await response.json();
         const schools = result.data;
@@ -83,7 +89,6 @@ async function loadTable() {
     }
 }
 
-
 let currentOldCode = "";
 
 window.openEditModal = (code, name, role) => {
@@ -112,9 +117,9 @@ async function submitEdit() {
     };
 
     try {
-        const response = await fetch(`http://192.168.1.148:3000/api/admin/update-school/${currentOldCode}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/update-school/${currentOldCode}`, {
             method: 'PUT',
-            headers: getAuthHeaders(), // Added Security Headers
+            headers: getAuthHeaders(),
             body: JSON.stringify(payload)
         });
 
@@ -136,9 +141,9 @@ async function submitEdit() {
 window.deleteSchool = async (id) => {
     if (!confirm(`Are you sure you want to revoke access for [${id}]?`)) return;
     try {
-        const response = await fetch(`http://192.168.1.148:3000/api/admin/school/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/school/${id}`, {
             method: 'DELETE',
-            headers: getAuthHeaders() // Added Security Headers
+            headers: getAuthHeaders()
         });
         
         const result = await response.json();
