@@ -35,14 +35,15 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const schoolSelect = document.getElementById('userSchool');
+    const accessKeyInput = document.getElementById('accessCode');
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
     // Save original button content so we can restore it later
     const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
 
-    const schoolCode = schoolSelect.value; 
-    const accessKey = document.getElementById('accessCode').value.trim();
+    const schoolCode = schoolSelect ? schoolSelect.value : ''; 
+    const accessKey = accessKeyInput ? accessKeyInput.value.trim() : '';
 
     if (errorMsg) errorMsg.style.display = 'none';
 
@@ -100,7 +101,10 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                 errorMsg.textContent = data.message || "Invalid Access Code for the selected school.";
                 errorMsg.style.display = 'block';
             }
-            // Restore button if login failed
+            // Clear bad password input on failure
+            if (accessKeyInput) accessKeyInput.value = '';
+            
+            // Restore button state
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
@@ -111,11 +115,11 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             errorMsg.textContent = "Unable to connect to the server. Please check your network.";
             errorMsg.style.display = 'block';
         }
-        // Restore button on network error
+        // Restore button state on connection error
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnContent;
         }
     }
-    // Note: If login is successful, we leave the spinner active until window.location redirects the page!
+    // Note: On success, password field stays populated while browser handles redirect/autofill saving!
 });
