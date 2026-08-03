@@ -31,12 +31,12 @@ async function populateSchools() {
 
 // Run this on load
 populateSchools();
-
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const schoolSelect = document.getElementById('userSchool');
     const errorMsg = document.getElementById('errorMsg');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
     
     const schoolCode = schoolSelect.value; 
     const accessKey = document.getElementById('accessCode').value.trim();
@@ -52,6 +52,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 
     try {
+        // Optional: UI loading feedback
+        if (submitBtn) submitBtn.disabled = true;
+
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -60,27 +63,31 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
 
         const data = await response.json();
         
-        if (data.success) {
+        if (response.ok && data.success) {
             // 1. Store session data
             sessionStorage.setItem('token', data.token);
             sessionStorage.setItem('schoolName', data.schoolName);
             sessionStorage.setItem('schoolCode', data.schoolCode);
-            sessionStorage.setItem('role', data.role); // Save role for dashboard checks 
+            sessionStorage.setItem('role', data.role);
 
-            // 2. Dynamic Redirect
-            window.location.href = data.redirectUrl;
+            // 2. Safe Relative Redirect (strips leading slash if backend provided one)
+            const relativePath = data.redirectUrl.replace(/^\/+/, '');
+            window.location.href = `./${relativePath}`;
             
         } else {
-            // 401 Unauthenticated or 400 Bad Request
+            
             if (errorMsg) {
-                errorMsg.textContent = data.message || "Invalid credentials.";
+                errorMsg.textContent = data.message || "Invalid Access Code for the selected school.";
                 errorMsg.style.display = 'block';
             }
         }
     } catch (err) {
+        
         if (errorMsg) {
-            errorMsg.textContent = "Unable to connect to the server.";
+            errorMsg.textContent = "Unable to connect to the server. Please check your network.";
             errorMsg.style.display = 'block';
         }
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
     }
 });

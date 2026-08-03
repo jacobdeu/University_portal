@@ -3,7 +3,6 @@ import db from '../config/db.js';
 import jwt from 'jsonwebtoken';
 import { verifySchoolLogin, registerSchool } from '../models/database.js';
 
-
 export const loginSchool = async (req, res) => {
     const { schoolCode, accessKey } = req.body;
 
@@ -22,15 +21,18 @@ export const loginSchool = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { code: authResult.school.school_code, role: authResult.school.role },
+            { 
+                code: authResult.school.school_code, 
+                role: authResult.school.role 
+            },
             process.env.JWT_SECRET || 'university_super_secret_key',
-            { expiresIn: '24h' } // Increased timeline; 3s is too brief for an active session
+            { expiresIn: '24h' }
         );
 
-        // Fixed typo 'supperAdmin' to 'superAdmin'
+        // ✅ Fixed: Relative paths prevent GitHub Pages 404 errors
         const redirectUrl = authResult.school.role === 'super_admin'
-            ? `/SupperAdmin.html` 
-            : `/registrar.html`;
+            ? './SupperAdmin.html' 
+            : './registrar.html';
 
         res.status(200).json({
             success: true,
