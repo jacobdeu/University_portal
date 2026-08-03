@@ -58,7 +58,6 @@ async function loadSchools() {
     }
 }
 window.onload = loadSchools;
-
 // 4. Results Search Trigger
 async function fetchResults() {
     const schoolSelect = document.getElementById('schoolNameSelect');
@@ -90,10 +89,13 @@ function showTimedError(element, message) {
         element.innerText = "";
     }, 4000);
 }
+
 // 5. Fetch Student Data & GPA
 async function fetchStudentData(student_id, school, semester) {
     const resultsDisplay = document.getElementById('resultsDisplay');
     const errorEl = document.getElementById('error-message');
+    const tableBody = document.getElementById('resultsTableBody');
+    const mobileCardsContainer = document.getElementById('resultCards');
 
     if (errorTimer) clearTimeout(errorTimer);
     if (errorEl) errorEl.innerText = "";
@@ -105,33 +107,49 @@ async function fetchStudentData(student_id, school, semester) {
     }
 
     // -------------------------------------------------------------
-    // STEP 1: Render Spinner Directly Inside Results Display
+    // STEP 1: Show Container & Render Loader Without Destroying Layout
     // -------------------------------------------------------------
     if (resultsDisplay) {
         resultsDisplay.style.display = 'block';
-        resultsDisplay.innerHTML = `
-            <div style="
-                text-align: center; 
-                padding: 40px 20px; 
-                background: white; 
-                border-radius: 12px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-                margin-top: 20px;
-            ">
-                <div class="loader-spinner" style="
-                    width: 42px;
-                    height: 42px;
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #1a2a6c;
-                    border-radius: 50%;
-                    animation: spin 0.9s linear infinite;
-                    margin: 0 auto 16px auto;
-                "></div>
-                <h4 style="color: #1a2a6c; margin: 0 0 6px 0; font-size: 1.1rem; font-weight: 700;">Fetching Academic Records...</h4>
-                <p style="color: #666; font-size: 0.85rem; margin: 0;">Connecting to server, please wait</p>
-            </div>
-        `;
     }
+
+    const loaderHTML = `
+        <style>
+            @keyframes inlineSpin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(6px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+        <div id="loadingState" style="
+            text-align: center; 
+            padding: 30px 15px; 
+            background: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin: 15px 0;
+            animation: fadeIn 0.3s ease-out forwards;
+        ">
+            <div style="
+                width: 38px;
+                height: 38px;
+                border: 4px solid #e0e6ed;
+                border-top: 4px solid #1a2a6c;
+                border-radius: 50%;
+                animation: inlineSpin 0.8s linear infinite;
+                margin: 0 auto 12px auto;
+            "></div>
+            <h4 style="color: #1a2a6c; margin: 0 0 4px 0; font-size: 1rem; font-weight: 700;">Fetching Academic Records...</h4>
+            <p style="color: #666; font-size: 0.8rem; margin: 0;">Connecting to server, please wait</p>
+        </div>
+    `;
+
+    // Inject temporary loader in table/card spots so sub-elements survive
+    if (tableBody) tableBody.innerHTML = `<tr><td colspan="4">${loaderHTML}</td></tr>`;
+    if (mobileCardsContainer) mobileCardsContainer.innerHTML = loaderHTML;
 
     const params = new URLSearchParams({ id: student_id, school, semester });
 
@@ -159,7 +177,6 @@ async function fetchStudentData(student_id, school, semester) {
                 }
             }
 
-            // Hide spinner container on error
             if (resultsDisplay) resultsDisplay.style.display = 'none';
             showTimedError(errorEl, message);
             return;
@@ -172,9 +189,9 @@ async function fetchStudentData(student_id, school, semester) {
         }
 
         errorEl.innerText = "";
-
+        
         // -------------------------------------------------------------
-        // STEP 2: Overwrite Spinner with Rendered Table
+        // STEP 2: Populates preserve elements safely
         // -------------------------------------------------------------
         renderTable(resultsData, student_id, gpaData);
 
@@ -239,6 +256,7 @@ function renderTable(results, idNumber, gpa) {
         resultsSection.classList.add('active');
     }
 }
+
 async function loadAnnouncements() {
     const container = document.getElementById('announcementList');
     if (!container) return;
