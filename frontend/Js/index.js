@@ -95,6 +95,10 @@ function showTimedError(element, message) {
 async function fetchStudentData(student_id, school, semester) {
     const resultsDisplay = document.getElementById('resultsDisplay');
     const errorEl = document.getElementById('error-message');
+    
+    // Select your submit button (adjust selector ID/class if yours is different)
+    const submitBtn = document.querySelector('button[type="submit"]') || document.getElementById('checkBtn');
+    let originalBtnContent = "";
 
     if (errorTimer) clearTimeout(errorTimer);
     if (resultsDisplay) resultsDisplay.style.display = 'none';
@@ -105,12 +109,34 @@ async function fetchStudentData(student_id, school, semester) {
         return;
     }
 
+    // -------------------------------------------------------------
+    // STEP 1: Set Button Loading State
+    // -------------------------------------------------------------
+    if (submitBtn) {
+        originalBtnContent = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <span style="display: inline-flex; align-items: center; gap: 8px;">
+                <span class="btn-spinner" style="
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-top: 2px solid #ffffff;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                    display: inline-block;
+                "></span>
+                <span>Searching...</span>
+            </span>
+        `;
+    }
+
     const params = new URLSearchParams({ id: student_id, school, semester });
 
     try {
         const [response, gpaResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/student/result?${params.toString()}`),
-            fetch(`${API_BASE_URL}/student/gpa?${params.toString()}`)
+            fetch(`${API_BASE_URL}/student/result?${params.toString()}`, { cache: 'no-store' }),
+            fetch(`${API_BASE_URL}/student/gpa?${params.toString()}`, { cache: 'no-store' })
         ]);
 
         const resultsData = await response.json().catch(() => null);
@@ -146,6 +172,14 @@ async function fetchStudentData(student_id, school, semester) {
     } catch (err) {
         console.error("Fetch Error:", err);
         showTimedError(errorEl, "Connection failed. Please check your network or server setup.");
+    } finally {
+        // -------------------------------------------------------------
+        // STEP 2: Restore Button State (Runs on success OR error)
+        // -------------------------------------------------------------
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnContent;
+        }
     }
 }
 
