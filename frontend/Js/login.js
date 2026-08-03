@@ -55,9 +55,22 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Dynamic keyframe injection so spinner rotates regardless of external CSS
+    if (!document.getElementById('btn-spin-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'btn-spin-keyframes';
+        style.innerHTML = `
+            @keyframes btnSpin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     try {
         // -------------------------------------------------------------
-        // STEP 1: Show Spinner & Disable Button
+        // STEP 1: Show Animated Spinner & Disable Button
         // -------------------------------------------------------------
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -69,8 +82,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                         border: 2px solid rgba(255, 255, 255, 0.3);
                         border-top: 2px solid #ffffff;
                         border-radius: 50%;
-                        animation: spin 0.8s linear infinite;
+                        animation: btnSpin 0.8s linear infinite;
                         display: inline-block;
+                        box-sizing: border-box;
                     "></span>
                     <span>Authenticating...</span>
                 </span>
@@ -121,5 +135,4 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             submitBtn.innerHTML = originalBtnContent;
         }
     }
-    // Note: On success, password field stays populated while browser handles redirect/autofill saving!
 });
