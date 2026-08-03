@@ -38,6 +38,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
+    // Save original button content so we can restore it later
+    const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+
     const schoolCode = schoolSelect.value; 
     const accessKey = document.getElementById('accessCode').value.trim();
 
@@ -52,8 +55,26 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 
     try {
-        // Optional: UI loading feedback
-        if (submitBtn) submitBtn.disabled = true;
+        // -------------------------------------------------------------
+        // STEP 1: Show Spinner & Disable Button
+        // -------------------------------------------------------------
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <span style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span style="
+                        width: 16px;
+                        height: 16px;
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-top: 2px solid #ffffff;
+                        border-radius: 50%;
+                        animation: spin 0.8s linear infinite;
+                        display: inline-block;
+                    "></span>
+                    <span>Authenticating...</span>
+                </span>
+            `;
+        }
 
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
@@ -75,19 +96,26 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             window.location.href = `./${relativePath}`;
             
         } else {
-            
             if (errorMsg) {
                 errorMsg.textContent = data.message || "Invalid Access Code for the selected school.";
                 errorMsg.style.display = 'block';
             }
+            // Restore button if login failed
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+            }
         }
     } catch (err) {
-        
         if (errorMsg) {
             errorMsg.textContent = "Unable to connect to the server. Please check your network.";
             errorMsg.style.display = 'block';
         }
-    } finally {
-        if (submitBtn) submitBtn.disabled = false;
+        // Restore button on network error
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnContent;
+        }
     }
+    // Note: If login is successful, we leave the spinner active until window.location redirects the page!
 });
