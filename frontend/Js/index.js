@@ -90,44 +90,46 @@ function showTimedError(element, message) {
         element.innerText = "";
     }, 4000);
 }
-
 // 5. Fetch Student Data & GPA
 async function fetchStudentData(student_id, school, semester) {
     const resultsDisplay = document.getElementById('resultsDisplay');
     const errorEl = document.getElementById('error-message');
-    
-    // Select your submit button (adjust selector ID/class if yours is different)
-    const submitBtn = document.querySelector('button[type="submit"]') || document.getElementById('checkBtn');
-    let originalBtnContent = "";
 
     if (errorTimer) clearTimeout(errorTimer);
-    if (resultsDisplay) resultsDisplay.style.display = 'none';
     if (errorEl) errorEl.innerText = "";
 
     if (!student_id || !school || !semester) {
+        if (resultsDisplay) resultsDisplay.style.display = 'none';
         showTimedError(errorEl, "Please provide Student ID, School, and Semester.");
         return;
     }
 
     // -------------------------------------------------------------
-    // STEP 1: Set Button Loading State
+    // STEP 1: Render Spinner Directly Inside Results Display
     // -------------------------------------------------------------
-    if (submitBtn) {
-        originalBtnContent = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-            <span style="display: inline-flex; align-items: center; gap: 8px;">
-                <span class="btn-spinner" style="
-                    width: 16px;
-                    height: 16px;
-                    border: 2px solid rgba(255,255,255,0.3);
-                    border-top: 2px solid #ffffff;
+    if (resultsDisplay) {
+        resultsDisplay.style.display = 'block';
+        resultsDisplay.innerHTML = `
+            <div style="
+                text-align: center; 
+                padding: 40px 20px; 
+                background: white; 
+                border-radius: 12px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                margin-top: 20px;
+            ">
+                <div class="loader-spinner" style="
+                    width: 42px;
+                    height: 42px;
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #1a2a6c;
                     border-radius: 50%;
-                    animation: spin 0.8s linear infinite;
-                    display: inline-block;
-                "></span>
-                <span>Searching...</span>
-            </span>
+                    animation: spin 0.9s linear infinite;
+                    margin: 0 auto 16px auto;
+                "></div>
+                <h4 style="color: #1a2a6c; margin: 0 0 6px 0; font-size: 1.1rem; font-weight: 700;">Fetching Academic Records...</h4>
+                <p style="color: #666; font-size: 0.85rem; margin: 0;">Connecting to server, please wait</p>
+            </div>
         `;
     }
 
@@ -157,29 +159,29 @@ async function fetchStudentData(student_id, school, semester) {
                 }
             }
 
+            // Hide spinner container on error
+            if (resultsDisplay) resultsDisplay.style.display = 'none';
             showTimedError(errorEl, message);
             return;
         }
 
         if (!resultsData || resultsData.length === 0) {
+            if (resultsDisplay) resultsDisplay.style.display = 'none';
             showTimedError(errorEl, "No records found for this semester.");
             return;
         }
 
         errorEl.innerText = "";
+
+        // -------------------------------------------------------------
+        // STEP 2: Overwrite Spinner with Rendered Table
+        // -------------------------------------------------------------
         renderTable(resultsData, student_id, gpaData);
 
     } catch (err) {
         console.error("Fetch Error:", err);
+        if (resultsDisplay) resultsDisplay.style.display = 'none';
         showTimedError(errorEl, "Connection failed. Please check your network or server setup.");
-    } finally {
-        // -------------------------------------------------------------
-        // STEP 2: Restore Button State (Runs on success OR error)
-        // -------------------------------------------------------------
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnContent;
-        }
     }
 }
 
