@@ -209,12 +209,34 @@ async function loadAnnouncements() {
     const container = document.getElementById('announcementList');
     if (!container) return;
 
+    // STEP 1: Show Loading Indicator Immediately
+    container.innerHTML = `
+        <div class="announcement-loading" style="text-align: center; padding: 30px; color: #1a2a6c;">
+            <div class="loader-spinner" style="
+                width: 36px;
+                height: 36px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #1a2a6c;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 12px auto;
+            "></div>
+            <p style="font-size: 0.95rem; font-weight: 600; margin: 0;">Loading announcements...</p>
+            <span style="font-size: 0.8rem; color: #777;">Please wait while we connect to the server</span>
+        </div>
+    `;
+
     try {
         const response = await fetch(`${API_BASE_URL}/student/news`);
-        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Server status: ${response.status}`);
+        }
 
+        const data = await response.json();
         const newsArray = data.message;
 
+        // STEP 2: Handle Empty State
         if (!Array.isArray(newsArray) || newsArray.length === 0) {
             container.innerHTML = `<p style="text-align:center; color:#888; padding: 20px;">No active announcements at this time.</p>`;
             return;
@@ -222,6 +244,7 @@ async function loadAnnouncements() {
 
         const displayArray = newsArray.toReversed ? newsArray.toReversed() : [...newsArray].reverse();
 
+        // STEP 3: Replace Loading Indicator with News Cards
         container.innerHTML = displayArray.map(post => `
             <div class="announcement-card" style="
                 background: white; 
@@ -241,10 +264,24 @@ async function loadAnnouncements() {
         `).join('');
 
     } catch (error) {
-        console.log("News Fetch Error:", error);
-        container.innerHTML = `<p style="color:#d63031; text-align:center;">Unable to load news updates.</p>`;
+        console.error("News Fetch Error:", error);
+        container.innerHTML = `
+            <div style="text-align:center; padding: 20px; color:#d63031;">
+                <p style="margin-bottom: 8px; font-weight: 600;">Unable to load news updates.</p>
+                <button onclick="loadAnnouncements()" style="
+                    background: #1a2a6c;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                ">Retry</button>
+            </div>
+        `;
     }
 }
+
 loadAnnouncements();
 
 // 8. Contact Form School Loader

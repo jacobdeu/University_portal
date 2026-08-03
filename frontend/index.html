@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="University of Juba academic portal — view student results, announcements, and contact the registrar office.">
+    <meta name="description"
+        content="University of Juba academic portal — view student results, announcements, and contact the registrar office.">
     <title>University Academic Portal | UoJ</title>
     <style>
         :root {
@@ -36,7 +37,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -63,7 +64,9 @@
             transition: color 0.3s;
         }
 
-        .nav-links a:hover { color: var(--primary); }
+        .nav-links a:hover {
+            color: var(--primary);
+        }
 
         /* --- LAYOUT --- */
         .container {
@@ -73,12 +76,23 @@
             min-height: 70vh;
         }
 
-        .page { display: none; animation: fadeIn 0.4s; }
-        .active { display: block; }
+        .page {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+
+        .active {
+            display: block;
+        }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         /* --- FORM BOXES --- */
@@ -89,7 +103,7 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin: 0 auto 30px;
         }
 
@@ -106,7 +120,9 @@
             color: #555;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -118,10 +134,12 @@
             appearance: none;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0,45,98,0.1);
+            box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1);
         }
 
         .btn {
@@ -137,7 +155,9 @@
             transition: background 0.3s;
         }
 
-        .btn:hover { background: #00204a; }
+        .btn:hover {
+            background: #00204a;
+        }
 
         /* --- RESULTS DISPLAY --- */
         #resultsDisplay {
@@ -194,7 +214,7 @@
 
         .divider {
             border: none;
-            border-top: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
             margin: 10px 0;
         }
 
@@ -222,7 +242,7 @@
             background: white;
             border-radius: 10px;
             padding: 14px 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
             border-left: 4px solid var(--primary);
             display: flex;
             justify-content: space-between;
@@ -230,7 +250,9 @@
             gap: 10px;
         }
 
-        .result-card .subject-info { flex: 1; }
+        .result-card .subject-info {
+            flex: 1;
+        }
 
         .result-card .subject-name {
             font-weight: 600;
@@ -261,7 +283,7 @@
             overflow-x: auto;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             margin-top: 4px;
             -webkit-overflow-scrolling: touch;
         }
@@ -286,9 +308,18 @@
             font-size: 0.9rem;
         }
 
-        tr:last-child td { border-bottom: none; }
-        tfoot tr { background: #f0f4f8; }
-        tfoot td { font-weight: 700; color: var(--primary); }
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tfoot tr {
+            background: #f0f4f8;
+        }
+
+        tfoot td {
+            font-weight: 700;
+            color: var(--primary);
+        }
 
         /* --- FOOTER --- */
         .uoj-footer {
@@ -314,31 +345,69 @@
             letter-spacing: 0.5px;
         }
 
-        .footer-section p { color: #bdc3c7; line-height: 1.8; }
+        .footer-section p {
+            color: #bdc3c7;
+            line-height: 1.8;
+        }
 
         .footer-bottom {
             text-align: center;
             margin-top: 25px;
             padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: #999;
             font-size: 0.8rem;
         }
 
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         /* --- MOBILE --- */
         @media (max-width: 600px) {
-            nav { flex-direction: column; gap: 12px; text-align: center; }
-            .nav-links { gap: 10px; font-size: 0.9rem; }
-            .container { padding: 20px 12px; }
-            .results-box, .contact-card { padding: 20px 16px; }
+            nav {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
 
-            .info-grid { grid-template-columns: 1fr; gap: 8px; }
+            .nav-links {
+                gap: 10px;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 20px 12px;
+            }
+
+            .results-box,
+            .contact-card {
+                padding: 20px 16px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
 
             /* Switch to cards on mobile, hide table */
-            .result-cards { display: flex; }
-            .table-responsive { display: none; }
+            .result-cards {
+                display: flex;
+            }
 
-            #resultsDisplay { margin-top: 16px; }
+            .table-responsive {
+                display: none;
+            }
+
+            #resultsDisplay {
+                margin-top: 16px;
+            }
         }
     </style>
 </head>
@@ -362,15 +431,18 @@
 
         <!-- HOME PAGE -->
         <div id="home" class="page active">
-            <div class="hero" style="background: linear-gradient(135deg, #1a2a6c, #243b55); color: white; padding: 60px 20px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+            <div class="hero"
+                style="background: linear-gradient(135deg, #1a2a6c, #243b55); color: white; padding: 60px 20px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
                 <h1 style="font-size: 2.2rem; margin-bottom: 10px;">Academic Portal</h1>
                 <p style="opacity: 0.9;">University of Juba — Access your results and official updates.</p>
-                <a href="campus.html" style="display: inline-block; margin-top: 20px; color: #f39c12; text-decoration: none; font-weight: bold; border: 1px solid #f39c12; padding: 8px 20px; border-radius: 20px; transition: 0.3s;">
+                <a href="campus.html"
+                    style="display: inline-block; margin-top: 20px; color: #f39c12; text-decoration: none; font-weight: bold; border: 1px solid #f39c12; padding: 8px 20px; border-radius: 20px; transition: 0.3s;">
                     Explore Campus Gallery →
                 </a>
             </div>
             <h2 style="color: #1a2a6c; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                <span style="width: 10px; height: 25px; background: #f39c12; border-radius: 2px;" aria-hidden="true"></span>
+                <span style="width: 10px; height: 25px; background: #f39c12; border-radius: 2px;"
+                    aria-hidden="true"></span>
                 Latest Announcements
             </h2>
             <div id="announcementList" aria-live="polite"></div>
@@ -380,8 +452,10 @@
         <div id="results" class="page">
             <div class="results-box">
                 <h2 style="margin-bottom: 6px; text-align: center; color: var(--primary);">Result Verification</h2>
-                <p style="text-align:center; color:#888; font-size:0.85rem; margin-bottom:18px;">Enter your details to view your grades</p>
-                <p id="error-message" style="color: red; text-align: center; font-size:0.88rem; min-height:18px;" aria-live="polite"></p>
+                <p style="text-align:center; color:#888; font-size:0.85rem; margin-bottom:18px;">Enter your details to
+                    view your grades</p>
+                <p id="error-message" style="color: red; text-align: center; font-size:0.88rem; min-height:18px;"
+                    aria-live="polite"></p>
 
                 <div class="form-group">
                     <label for="schoolNameSelect">College / School</label>
@@ -421,7 +495,7 @@
                 <div class="student-info-card">
                     <span class="s-name" id="displayName"></span>
                     <div class="info-grid">
-                       
+
                         <div class="info-item">
                             <span class="info-label">Semester</span>
                             <span class="info-value" id="displaySemester"></span>
@@ -462,14 +536,19 @@
 
         <!-- ABOUT PAGE -->
         <div id="about" class="page">
-            <div style="background: rgba(255,255,255,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 900px; margin: 20px auto; line-height: 1.8; color: #333;">
+            <div
+                style="background: rgba(255,255,255,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 900px; margin: 20px auto; line-height: 1.8; color: #333;">
                 <div style="text-align: center; margin-bottom: 30px;">
                     <h1 style="color: #1a2a6c; margin-bottom: 10px; font-size: 2.2rem;">University of Juba (UoJ)</h1>
-                    <p style="font-size: 1.2rem; color: #555; font-weight: 600;">Inventing the Future — Transforming Society</p>
+                    <p style="font-size: 1.2rem; color: #555; font-weight: 600;">Inventing the Future — Transforming
+                        Society</p>
                 </div>
-                <p>The <strong>University of Juba</strong> is South Sudan's premier comprehensive institution, established in 1975.</p>
-                <div style="background: #f8f9fa; padding: 25px; border-left: 5px solid #1a2a6c; border-radius: 8px; margin-top: 40px;">
-                    <p style="font-size: 1.15rem; font-style: italic; color: #1a2a6c;">"You don't get what you wish for. You get what you work for. Join us and explore!"</p>
+                <p>The <strong>University of Juba</strong> is South Sudan's premier comprehensive institution,
+                    established in 1975.</p>
+                <div
+                    style="background: #f8f9fa; padding: 25px; border-left: 5px solid #1a2a6c; border-radius: 8px; margin-top: 40px;">
+                    <p style="font-size: 1.15rem; font-style: italic; color: #1a2a6c;">"You don't get what you wish for.
+                        You get what you work for. Join us and explore!"</p>
                 </div>
             </div>
         </div>
@@ -491,10 +570,12 @@
                     </div>
                     <div class="form-group">
                         <label for="message">Message</label>
-                        <textarea id="message" rows="5" placeholder="Describe your issue..." required autocomplete="off"></textarea>
+                        <textarea id="message" rows="5" placeholder="Describe your issue..." required
+                            autocomplete="off"></textarea>
                     </div>
                     <button type="submit" class="btn">Submit Ticket</button>
-                    <div id="responseMessage" style="margin-top: 15px; font-weight: bold; text-align: center;" aria-live="polite"></div>
+                    <div id="responseMessage" style="margin-top: 15px; font-weight: bold; text-align: center;"
+                        aria-live="polite"></div>
                 </form>
             </div>
         </div>
