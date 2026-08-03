@@ -203,31 +203,38 @@ function renderTable(results, idNumber, gpa) {
         resultsSection.classList.add('active');
     }
 }
-
-// 7. Load Announcements
 async function loadAnnouncements() {
     const container = document.getElementById('announcementList');
     if (!container) return;
 
-    // STEP 1: Show Loading Indicator Immediately
+    // STEP 1: Render Styled Loading Card
     container.innerHTML = `
-        <div class="announcement-loading" style="text-align: center; padding: 30px; color: #1a2a6c;">
+        <div class="announcement-loading" style="
+            text-align: center; 
+            padding: 35px 20px; 
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f5;
+        ">
             <div class="loader-spinner" style="
-                width: 36px;
-                height: 36px;
-                border: 4px solid #f3f3f3;
+                width: 40px;
+                height: 40px;
+                border: 4px solid #e0e6ed;
                 border-top: 4px solid #1a2a6c;
                 border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 12px auto;
+                animation: spin 0.9s linear infinite;
+                margin: 0 auto 14px auto;
             "></div>
-            <p style="font-size: 0.95rem; font-weight: 600; margin: 0;">Loading announcements...</p>
-            <span style="font-size: 0.8rem; color: #777;">Please wait while we connect to the server</span>
+            <p style="font-size: 1rem; font-weight: 700; margin: 0 0 4px 0; color: #1a2a6c;">Loading announcements...</p>
+            <span style="font-size: 0.82rem; color: #666;">Connecting to server...</span>
         </div>
     `;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/student/news`);
+        const response = await fetch(`${API_BASE_URL}/student/news?_t=${Date.now()}`, {
+            cache: 'no-store'
+        });
         
         if (!response.ok) {
             throw new Error(`Server status: ${response.status}`);
@@ -238,13 +245,17 @@ async function loadAnnouncements() {
 
         // STEP 2: Handle Empty State
         if (!Array.isArray(newsArray) || newsArray.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#888; padding: 20px;">No active announcements at this time.</p>`;
+            container.innerHTML = `
+                <div style="text-align:center; padding: 25px; background: white; border-radius: 12px; color:#666;">
+                    No active announcements at this time.
+                </div>
+            `;
             return;
         }
 
         const displayArray = newsArray.toReversed ? newsArray.toReversed() : [...newsArray].reverse();
 
-        // STEP 3: Replace Loading Indicator with News Cards
+        // STEP 3: Render News Cards
         container.innerHTML = displayArray.map(post => `
             <div class="announcement-card" style="
                 background: white; 
@@ -254,7 +265,7 @@ async function loadAnnouncements() {
                 border-left: 6px solid #1a2a6c; 
                 box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             ">
-                <div class="announcement-title" style="color: #1a2a6c; font-size: 1.3rem; font-weight: 800; margin-bottom: 10px;">
+                <div class="announcement-title" style="color: #1a2a6c; font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">
                     ${post.title}
                 </div>
                 <div class="announcement-body" style="color: #444; line-height: 1.6;">
@@ -266,23 +277,25 @@ async function loadAnnouncements() {
     } catch (error) {
         console.error("News Fetch Error:", error);
         container.innerHTML = `
-            <div style="text-align:center; padding: 20px; color:#d63031;">
-                <p style="margin-bottom: 8px; font-weight: 600;">Unable to load news updates.</p>
+            <div style="text-align:center; padding: 25px; background: white; border-radius: 12px; color:#d63031;">
+                <p style="margin-bottom: 10px; font-weight: 600;">Unable to load news updates.</p>
                 <button onclick="loadAnnouncements()" style="
                     background: #1a2a6c;
                     color: white;
                     border: none;
-                    padding: 8px 16px;
+                    padding: 8px 18px;
                     border-radius: 6px;
                     cursor: pointer;
                     font-size: 0.85rem;
+                    font-weight: 600;
                 ">Retry</button>
             </div>
         `;
     }
 }
 
-loadAnnouncements();
+// Initialize on load
+document.addEventListener('DOMContentLoaded', loadAnnouncements);
 
 // 8. Contact Form School Loader
 document.addEventListener('DOMContentLoaded', () => {
