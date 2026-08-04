@@ -25,12 +25,13 @@ function getAuthHeaders() {
         'Authorization': `Bearer ${token}`
     };
 }
+let lastFetchedDataString = ""; // Cache raw data to detect changes
 
 async function renderMessages(isSilent = false) {
     const container = document.getElementById('adminTicketList');
     if (!container) return;
 
-    // Helper function to handle session eviction and clean redirection UI
+    // Helper function to handle session eviction
     const handleSessionEviction = () => {
         container.innerHTML = `
         <div style="text-align:center; padding:40px; color:var(--danger, #e63946);">
@@ -43,13 +44,11 @@ async function renderMessages(isSilent = false) {
         }, 2000);
     };
 
-    // 1. Initial local guard check on load
     if (typeof savedCode === 'undefined' || !savedCode || !sessionStorage.getItem('token')) {
         handleSessionEviction();
         return; 
     }
 
-    // 2. Inject CSS animation keyframes if not already present
     if (!document.getElementById('msg-spin-keyframes')) {
         const style = document.createElement('style');
         style.id = 'msg-spin-keyframes';
@@ -62,7 +61,7 @@ async function renderMessages(isSilent = false) {
         document.head.appendChild(style);
     }
 
-    // 3. Render spinner placeholder ONLY on explicit initial loads (NOT during background polling)
+    // ONLY show spinner if container is completely empty AND it's an initial explicit load
     if (!isSilent && container.children.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px; color: var(--text-light, #666);">
@@ -88,7 +87,6 @@ async function renderMessages(isSilent = false) {
             headers: typeof getAuthHeaders === 'function' ? getAuthHeaders() : {} 
         });
         
-        // Intercept backend token expiration (401 Unauthorized / 403 Forbidden)
         if (response.status === 401 || response.status === 403) {
             handleSessionEviction();
             return;
@@ -100,6 +98,7 @@ async function renderMessages(isSilent = false) {
             const targetArray = (data.messages && data.messages.data) || data.data || data.messages || data;
 
             if (!Array.isArray(targetArray) || targetArray.length === 0) {
+                lastFetchedDataString = "";
                 container.innerHTML = `
                     <div style="text-align:center; padding:40px; color:var(--text-light, #666);">
                         <p style="font-size: 1.1rem;">✨ No pending issues for ${savedCode}</p>
@@ -107,6 +106,18 @@ async function renderMessages(isSilent = false) {
                 return;
             }
 
+            // 1. Serialize target array to compare data directly
+            const currentDataString = JSON.stringify(targetArray);
+
+            // 2. IF DATA IS IDENTICAL, DO NOTHING! (Prevents any redraw/spin)
+            if (currentDataString === lastFetchedDataString) {
+                return; 
+            }
+
+            // Update cache string
+            lastFetchedDataString = currentDataString;
+
+            // 3. Render HTML only when data ACTUALLY changes
             let html = "";
             targetArray.forEach(({ student_id, message, created_at, message_id }) => {
                 const ticketDate = new Date(created_at);
@@ -132,31 +143,22 @@ async function renderMessages(isSilent = false) {
                     </div>`;
             });
 
-            // Update DOM quietly without wiping out scrolled position or cause flickering
-            if (container.innerHTML !== html) {
-                container.innerHTML = html;
-            }
-        } else {
-            if (!isSilent) {
-                container.innerHTML = `<p style="text-align:center; padding:20px;">${data.message || data.error || 'Server Error'}</p>`;
-            }
+            container.innerHTML = html;
         }
     } catch (error) {
         console.error("Fetch Error:", error);
-        if (!isSilent && container.children.length === 0) {
-            container.innerHTML = `<p style="text-align:center; padding:20px; color:red;">Connection Error: Unable to connect to server.</p>`;
-        }
     }
 }
 
-// 1. Initial paint with spinner enabled
+// Initial paint
 renderMessages(false);
 window.renderMessages = renderMessages;
 
-// 2. Poll every 5 seconds silently in background (NO flickering)
+// Background polling (every 5 seconds)
 setInterval(() => {
     renderMessages(true);
 }, 5000);
+
 // 2. DELETE MESSAGE LOGIC (DELETE)
 async function deleteMessage(id) {
     if (!confirm("Are you sure you want to remove this student issue?")) return;
