@@ -154,10 +154,7 @@ async function renderMessages(isSilent = false) {
 renderMessages(false);
 window.renderMessages = renderMessages;
 
-// Background polling (every 5 seconds)
-setInterval(() => {
-    renderMessages(true);
-}, 5000);
+
 
 // 2. DELETE MESSAGE LOGIC (DELETE)
 async function deleteMessage(id) {
