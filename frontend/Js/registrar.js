@@ -142,6 +142,10 @@ async function renderMessages() {
 // Execute on initial layout paint
 renderMessages();
 window.renderMessages = renderMessages;
+// Poll every 5 seconds for new messages automatically
+setInterval(() => {
+    renderMessages();
+}, 5000);
 // 2. DELETE MESSAGE LOGIC (DELETE)
 async function deleteMessage(id) {
     if (!confirm("Are you sure you want to remove this student issue?")) return;
