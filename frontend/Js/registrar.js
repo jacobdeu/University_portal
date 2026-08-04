@@ -26,7 +26,7 @@ function getAuthHeaders() {
     };
 }
 
-async function renderMessages() {
+async function renderMessages(isSilent = false) {
     const container = document.getElementById('adminTicketList');
     if (!container) return;
 
@@ -62,21 +62,23 @@ async function renderMessages() {
         document.head.appendChild(style);
     }
 
-    // 3. Render spinner placeholder while fetching data
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: var(--text-light, #666);">
-            <div style="
-                width: 28px;
-                height: 28px;
-                border: 3px solid rgba(0, 0, 0, 0.1);
-                border-top: 3px solid var(--primary, #007bff);
-                border-radius: 50%;
-                animation: msgSpin 0.8s linear infinite;
-                margin: 0 auto 12px auto;
-            "></div>
-            <p style="font-size: 0.95rem; font-weight: 500;">Loading messages...</p>
-        </div>
-    `;
+    // 3. Render spinner placeholder ONLY on explicit initial loads (NOT during background polling)
+    if (!isSilent && container.children.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-light, #666);">
+                <div style="
+                    width: 28px;
+                    height: 28px;
+                    border: 3px solid rgba(0, 0, 0, 0.1);
+                    border-top: 3px solid var(--primary, #007bff);
+                    border-radius: 50%;
+                    animation: msgSpin 0.8s linear infinite;
+                    margin: 0 auto 12px auto;
+                "></div>
+                <p style="font-size: 0.95rem; font-weight: 500;">Loading messages...</p>
+            </div>
+        `;
+    }
 
     const params = new URLSearchParams({ school_code: savedCode });
 
@@ -113,7 +115,7 @@ async function renderMessages() {
                 });
 
                 html += `
-                    <div class="ticket-item">
+                    <div class="ticket-item" data-id="${message_id}">
                         <div class="ticket-meta">
                             <span class="student-id">${student_id}</span>
                             <div class="ticket-actions">
@@ -129,22 +131,31 @@ async function renderMessages() {
                         <p class="ticket-message">${message}</p>
                     </div>`;
             });
-            container.innerHTML = html;
+
+            // Update DOM quietly without wiping out scrolled position or cause flickering
+            if (container.innerHTML !== html) {
+                container.innerHTML = html;
+            }
         } else {
-            container.innerHTML = `<p style="text-align:center; padding:20px;">${data.message || data.error || 'Server Error'}</p>`;
+            if (!isSilent) {
+                container.innerHTML = `<p style="text-align:center; padding:20px;">${data.message || data.error || 'Server Error'}</p>`;
+            }
         }
     } catch (error) {
         console.error("Fetch Error:", error);
-        container.innerHTML = `<p style="text-align:center; padding:20px; color:red;">Connection Error: Unable to connect to server.</p>`;
+        if (!isSilent && container.children.length === 0) {
+            container.innerHTML = `<p style="text-align:center; padding:20px; color:red;">Connection Error: Unable to connect to server.</p>`;
+        }
     }
 }
 
-// Execute on initial layout paint
-renderMessages();
+// 1. Initial paint with spinner enabled
+renderMessages(false);
 window.renderMessages = renderMessages;
-// Poll every 5 seconds for new messages automatically
+
+// 2. Poll every 5 seconds silently in background (NO flickering)
 setInterval(() => {
-    renderMessages();
+    renderMessages(true);
 }, 5000);
 // 2. DELETE MESSAGE LOGIC (DELETE)
 async function deleteMessage(id) {
