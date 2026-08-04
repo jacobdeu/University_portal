@@ -144,3 +144,13 @@ window.addEventListener('pageshow', () => {
         }
     }
 });
+
+const accessCodeInput = document.getElementById('accessCode');
+
+if (accessCodeInput) {
+    accessCodeInput.addEventListener('focus', function() {
+        if (this.type === 'text') {
+            this.type = 'password';
+        }
+    });
+}
