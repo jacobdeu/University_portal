@@ -25,7 +25,8 @@ function getAuthHeaders() {
         'Authorization': `Bearer ${token}`
     };
 }
-let lastFetchedDataString = ""; // Cache raw data to detect changes
+// Attach cache signature to window to ensure global stability across re-renders
+window.lastTicketIdsSignature = window.lastTicketIdsSignature || "";
 
 async function renderMessages(isSilent = false) {
     const container = document.getElementById('adminTicketList');
@@ -98,26 +99,30 @@ async function renderMessages(isSilent = false) {
             const targetArray = (data.messages && data.messages.data) || data.data || data.messages || data;
 
             if (!Array.isArray(targetArray) || targetArray.length === 0) {
-                lastFetchedDataString = "";
-                container.innerHTML = `
-                    <div style="text-align:center; padding:40px; color:var(--text-light, #666);">
-                        <p style="font-size: 1.1rem;">✨ No pending issues for ${savedCode}</p>
-                    </div>`;
+                if (window.lastTicketIdsSignature !== "EMPTY") {
+                    window.lastTicketIdsSignature = "EMPTY";
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:40px; color:var(--text-light, #666);">
+                            <p style="font-size: 1.1rem;">✨ No pending issues for ${savedCode}</p>
+                        </div>`;
+                }
                 return;
             }
 
-            // 1. Serialize target array to compare data directly
-            const currentDataString = JSON.stringify(targetArray);
+            // Generate a stable signature using message IDs and text length
+            const currentSignature = targetArray
+                .map(m => `${m.message_id || m.id}_${m.student_id}`)
+                .join('|');
 
-            // 2. IF DATA IS IDENTICAL, DO NOTHING! (Prevents any redraw/spin)
-            if (currentDataString === lastFetchedDataString) {
+            // IF THE MESSAGES IDENTIFIERS HAVEN'T CHANGED, STOP IMMEDIATELY (NO REDRAW)
+            if (currentSignature === window.lastTicketIdsSignature) {
                 return; 
             }
 
-            // Update cache string
-            lastFetchedDataString = currentDataString;
+            // Update global cache signature
+            window.lastTicketIdsSignature = currentSignature;
 
-            // 3. Render HTML only when data ACTUALLY changes
+            // Render HTML only when messages are added, deleted, or altered
             let html = "";
             targetArray.forEach(({ student_id, message, created_at, message_id }) => {
                 const ticketDate = new Date(created_at);
@@ -154,6 +159,14 @@ async function renderMessages(isSilent = false) {
 renderMessages(false);
 window.renderMessages = renderMessages;
 
+// Clear interval guard to prevent multiple timers stacking up on page reconnects
+if (window.adminMsgInterval) {
+    clearInterval(window.adminMsgInterval);
+}
+
+window.adminMsgInterval = setInterval(() => {
+    renderMessages(true);
+}, 5000);
 
 
 // 2. DELETE MESSAGE LOGIC (DELETE)
