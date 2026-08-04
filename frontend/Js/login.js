@@ -39,8 +39,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    // Fallback label if originalBtnContent is empty or contains the spinner
-    const originalBtnContent = 'Sign In';
+    const originalBtnContent = 'Enter Dashboard';
     const schoolCode = schoolSelect ? schoolSelect.value : ''; 
     const accessKey = accessKeyInput ? accessKeyInput.value.trim() : '';
 
@@ -100,14 +99,13 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             sessionStorage.setItem('schoolCode', data.schoolCode);
             sessionStorage.setItem('role', data.role);
 
-            // Restore button text BEFORE triggering location redirect
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
             }
 
-            const relativePath = data.redirectUrl.replace(/^\/+/, '');
-            window.location.href = `./${relativePath}`;
+            const relativePath = (data.redirectUrl || 'dashboard.html').replace(/^\/+/, '');
+            window.location.replace(`./${relativePath}`);
             
         } else {
             if (errorMsg) {
@@ -133,20 +131,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 });
 
-// Force-reset button & form on back-navigation or soft reload
-window.addEventListener('pageshow', () => {
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        const submitBtn = loginForm.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Sign In';
-        }
-    }
-});
-
+// Convert text to password on focus
 const accessCodeInput = document.getElementById('accessCode');
-
 if (accessCodeInput) {
     accessCodeInput.addEventListener('focus', function() {
         if (this.type === 'text') {
@@ -154,3 +140,30 @@ if (accessCodeInput) {
         }
     });
 }
+
+// FORCE CLEAR EVERYTHING ON PAGE SHOW & DOM CONTENT LOADED
+function wipeFormInputs() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.reset(); // Wipe all values
+        
+        const input = document.getElementById('accessCode');
+        if (input) {
+            input.value = ''; // Force clear password value
+            input.type = 'text'; // Reset type back to text
+        }
+
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Enter Dashboard';
+        }
+    }
+}
+
+// Clear state when navigating or soft reloading
+window.addEventListener('pageshow', wipeFormInputs);
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay 50ms to override browser's auto-fill script after paint
+    setTimeout(wipeFormInputs, 50);
+});
