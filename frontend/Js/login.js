@@ -39,9 +39,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    // Save original button content so we can restore it later
-    const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
-
+    const originalBtnContent = submitBtn ? submitBtn.innerHTML : 'Sign In';
     const schoolCode = schoolSelect ? schoolSelect.value : ''; 
     const accessKey = accessKeyInput ? accessKeyInput.value.trim() : '';
 
@@ -55,7 +53,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Dynamic keyframe injection so spinner rotates regardless of external CSS
     if (!document.getElementById('btn-spin-keyframes')) {
         const style = document.createElement('style');
         style.id = 'btn-spin-keyframes';
@@ -69,9 +66,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 
     try {
-        // -------------------------------------------------------------
-        // STEP 1: Show Animated Spinner & Disable Button
-        // -------------------------------------------------------------
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
@@ -100,13 +94,17 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            // 1. Store session data
             sessionStorage.setItem('token', data.token);
             sessionStorage.setItem('schoolName', data.schoolName);
             sessionStorage.setItem('schoolCode', data.schoolCode);
             sessionStorage.setItem('role', data.role);
 
-            // 2. Safe Relative Redirect (strips leading slash if backend provided one)
+            // Restoring button before redirect prevents stuck spinner state in memory
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+            }
+
             const relativePath = data.redirectUrl.replace(/^\/+/, '');
             window.location.href = `./${relativePath}`;
             
@@ -115,10 +113,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                 errorMsg.textContent = data.message || "Invalid Access Code for the selected school.";
                 errorMsg.style.display = 'block';
             }
-            // Clear bad password input on failure
             if (accessKeyInput) accessKeyInput.value = '';
             
-            // Restore button state
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
@@ -129,10 +125,17 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             errorMsg.textContent = "Unable to connect to the server. Please check your network.";
             errorMsg.style.display = 'block';
         }
-        // Restore button state on connection error
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnContent;
         }
+    }
+});
+
+// Clear cached state on page load/back navigation
+window.addEventListener('pageshow', (event) => {
+    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
     }
 });
