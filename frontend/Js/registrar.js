@@ -33,7 +33,7 @@ async function renderMessages() {
     // Helper function to handle session eviction and clean redirection UI
     const handleSessionEviction = () => {
         container.innerHTML = `
-        <div style="text-align:center; padding:40px; color:var(--danger);">
+        <div style="text-align:center; padding:40px; color:var(--danger, #e63946);">
             <p style="font-size: 1.1rem; font-weight: 600;">⚠️ Session expired. Redirecting to login page...</p>
         </div>`;
         sessionStorage.clear();
@@ -44,20 +44,49 @@ async function renderMessages() {
     };
 
     // 1. Initial local guard check on load
-    if (!savedCode || !sessionStorage.getItem('token')) {
+    if (typeof savedCode === 'undefined' || !savedCode || !sessionStorage.getItem('token')) {
         handleSessionEviction();
         return; 
     }
+
+    // 2. Inject CSS animation keyframes if not already present
+    if (!document.getElementById('msg-spin-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'msg-spin-keyframes';
+        style.textContent = `
+            @keyframes msgSpin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 3. Render spinner placeholder while fetching data
+    container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-light, #666);">
+            <div style="
+                width: 28px;
+                height: 28px;
+                border: 3px solid rgba(0, 0, 0, 0.1);
+                border-top: 3px solid var(--primary, #007bff);
+                border-radius: 50%;
+                animation: msgSpin 0.8s linear infinite;
+                margin: 0 auto 12px auto;
+            "></div>
+            <p style="font-size: 0.95rem; font-weight: 500;">Loading messages...</p>
+        </div>
+    `;
 
     const params = new URLSearchParams({ school_code: savedCode });
 
     try {
         const response = await fetch(`${API_BASE_URL}/admin/messages?${params.toString()}`, {
             method: 'GET',
-            headers: getAuthHeaders() 
+            headers: typeof getAuthHeaders === 'function' ? getAuthHeaders() : {} 
         });
         
-        // 2. Intercept a backend token expiration (401 Unauthorized / 403 Forbidden)
+        // Intercept backend token expiration (401 Unauthorized / 403 Forbidden)
         if (response.status === 401 || response.status === 403) {
             handleSessionEviction();
             return;
@@ -70,7 +99,7 @@ async function renderMessages() {
 
             if (!Array.isArray(targetArray) || targetArray.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:40px; color:var(--text-light);">
+                    <div style="text-align:center; padding:40px; color:var(--text-light, #666);">
                         <p style="font-size: 1.1rem;">✨ No pending issues for ${savedCode}</p>
                     </div>`;
                 return;
@@ -113,7 +142,6 @@ async function renderMessages() {
 // Execute on initial layout paint
 renderMessages();
 window.renderMessages = renderMessages;
-
 // 2. DELETE MESSAGE LOGIC (DELETE)
 async function deleteMessage(id) {
     if (!confirm("Are you sure you want to remove this student issue?")) return;
