@@ -39,7 +39,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    const originalBtnContent = submitBtn ? submitBtn.innerHTML : 'Sign In';
+    // Fallback label if originalBtnContent is empty or contains the spinner
+    const originalBtnContent = 'Sign In';
     const schoolCode = schoolSelect ? schoolSelect.value : ''; 
     const accessKey = accessKeyInput ? accessKeyInput.value.trim() : '';
 
@@ -99,7 +100,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             sessionStorage.setItem('schoolCode', data.schoolCode);
             sessionStorage.setItem('role', data.role);
 
-            // Restoring button before redirect prevents stuck spinner state in memory
+            // Restore button text BEFORE triggering location redirect
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
@@ -132,10 +133,14 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 });
 
-// Clear cached state on page load/back navigation
-window.addEventListener('pageshow', (event) => {
-    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = false;
+// Force-reset button & form on back-navigation or soft reload
+window.addEventListener('pageshow', () => {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Sign In';
+        }
     }
 });
